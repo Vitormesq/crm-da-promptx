@@ -1339,6 +1339,215 @@
       color: var(--red)
     }
 
+    /* ══ AGENT CONFIG PANEL ══ */
+    .agent-view {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .agent-view.active {
+      display: flex;
+    }
+
+    .agent-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--b);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .agent-sidebar-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--b);
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .agent-nav {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .agent-nav-item {
+      text-align: left;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .agent-nav-item:hover {
+      background: var(--s2);
+      color: var(--text);
+    }
+
+    .agent-nav-item.active {
+      background: rgba(108, 99, 255, .12);
+      color: var(--accent);
+      border-color: rgba(108, 99, 255, .25);
+    }
+
+    .agent-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+    }
+
+    .agent-main::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .agent-section {
+      display: none;
+    }
+
+    .agent-section.active {
+      display: block;
+    }
+
+    .agent-sec-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .agent-sec-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .agent-field {
+      margin-bottom: 16px;
+    }
+
+    .agent-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+
+    .agent-field input,
+    .agent-field textarea,
+    .agent-field select {
+      width: 100%;
+      padding: 10px 13px;
+      border-radius: 9px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      resize: vertical;
+      box-sizing: border-box;
+      transition: border-color .15s;
+    }
+
+    .agent-field input:focus,
+    .agent-field textarea:focus,
+    .agent-field select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .agent-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--b);
+    }
+
+    .agent-btn-save {
+      padding: 9px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--b);
+      background: var(--s2);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .agent-btn-save:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .agent-btn-send {
+      padding: 9px 20px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .agent-btn-send:hover {
+      opacity: .85;
+    }
+
+    .agent-btn-test {
+      padding: 9px 20px;
+      border-radius: 8px;
+      border: 1px solid rgba(16, 185, 129, .3);
+      background: rgba(16, 185, 129, .1);
+      color: var(--green);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .agent-btn-test:hover {
+      background: rgba(16, 185, 129, .2);
+    }
+
+    .agent-test-area {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      min-height: 0;
+    }
+
+    .agent-test-area.ok {
+      background: rgba(16, 185, 129, .1);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, .3);
+    }
+
+    .agent-test-area.err {
+      background: rgba(239, 68, 68, .1);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, .3);
+    }
+
     /* ══ CHAT PANEL ══ */
     .chat-view {
       display: none;
@@ -1649,6 +1858,8 @@
             </span>Tarefas</button>
           <button class="ptab" id="tabConversas" onclick="switchToChat(this)"><span class="ptab-emoji">💬
             </span>Conversas</button>
+          <button class="ptab" id="tabAgente" onclick="switchToAgente(this)"><span class="ptab-emoji">⚙️
+            </span>Agente IA</button>
         </div>
         <button class="btn bp" id="btnMainAdd" onclick="openModal()">+ Lead</button>
         <button class="logout-btn" id="logoutBtn" style="display:none" onclick="logout()">Sair</button>
@@ -1706,6 +1917,114 @@
               <input class="chat-input" id="chatInput" placeholder="Enviar mensagem manual..."
                 onkeypress="if(event.key==='Enter')sendManualMsg()" />
               <button class="chat-send-btn" onclick="sendManualMsg()">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- AGENTE IA CONFIG PANEL -->
+      <div class="agent-view" id="agentView">
+        <div class="agent-sidebar">
+          <div class="agent-sidebar-head">⚙️ Configuração do Agente</div>
+          <nav class="agent-nav">
+            <button class="agent-nav-item active" onclick="showAgentSection('webhook',this)">🔗 Webhook n8n</button>
+            <button class="agent-nav-item" onclick="showAgentSection('persona',this)">🤖 Persona</button>
+            <button class="agent-nav-item" onclick="showAgentSection('restrict',this)">🚫 Restrições</button>
+            <button class="agent-nav-item" onclick="showAgentSection('skills',this)">✨ Habilidades</button>
+          </nav>
+        </div>
+        <div class="agent-main">
+          <!-- WEBHOOK -->
+          <div class="agent-section active" id="agentSec_webhook">
+            <div class="agent-sec-title">🔗 Webhook n8n</div>
+            <div class="agent-sec-desc">URL do webhook que receberá as mensagens do WhatsApp e acionará o agente.</div>
+            <div class="agent-field">
+              <label>URL do Webhook</label>
+              <input id="cfg_webhook_url" placeholder="https://n8n.meuagentepro.com/webhook/sdr-promptx" />
+            </div>
+            <div class="agent-field">
+              <label>Método de envio</label>
+              <select id="cfg_webhook_method">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+              </select>
+            </div>
+            <div class="agent-field">
+              <label>Header de autenticação (opcional)</label>
+              <input id="cfg_webhook_auth" placeholder="Bearer SEU_TOKEN" />
+            </div>
+            <div class="agent-test-area" id="agentWebhookTestArea"></div>
+            <div class="agent-actions">
+              <button class="agent-btn-test" onclick="testWebhook()">▶ Testar Conexão</button>
+              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
+            </div>
+          </div>
+          <!-- PERSONA -->
+          <div class="agent-section" id="agentSec_persona">
+            <div class="agent-sec-title">🤖 Persona do Agente</div>
+            <div class="agent-sec-desc">Define quem é o agente, seu nome, tom de voz e objetivo principal.</div>
+            <div class="agent-field">
+              <label>Nome do agente</label>
+              <input id="cfg_agent_name" placeholder="Ex: Sofia, Mart, Lucas..." />
+            </div>
+            <div class="agent-field">
+              <label>Prompt do sistema (System Prompt)</label>
+              <textarea id="cfg_system_prompt" rows="12" placeholder="Você é [nome], SDR da [empresa]...
+Seu objetivo é marcar uma call de demonstração.
+Fale de forma natural, como humano.
+Máximo 3 linhas por mensagem."></textarea>
+            </div>
+            <div class="agent-actions">
+              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
+              <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
+            </div>
+          </div>
+          <!-- RESTRIÇÕES -->
+          <div class="agent-section" id="agentSec_restrict">
+            <div class="agent-sec-title">🚫 Restrições</div>
+            <div class="agent-sec-desc">O que o agente NUNCA deve fazer ou falar.</div>
+            <div class="agent-field">
+              <label>Restrições (uma por linha)</label>
+              <textarea id="cfg_restrictions" rows="10" placeholder="Nunca revelar preço antes da call
+Nunca mencionar concorrentes
+Nunca usar palavras como 'chatbot' ou 'robô'
+Não prometer resultados específicos
+Não pedir dados pessoais sensíveis"></textarea>
+            </div>
+            <div class="agent-field">
+              <label>Palavras bloqueadas (separadas por vírgula)</label>
+              <input id="cfg_blocked_words" placeholder="spam, promoção, urgente, clique aqui" />
+            </div>
+            <div class="agent-actions">
+              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
+              <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
+            </div>
+          </div>
+          <!-- HABILIDADES -->
+          <div class="agent-section" id="agentSec_skills">
+            <div class="agent-sec-title">✨ Habilidades</div>
+            <div class="agent-sec-desc">O que o agente sabe fazer e deve priorizar.</div>
+            <div class="agent-field">
+              <label>Habilidades principais (uma por linha)</label>
+              <textarea id="cfg_skills" rows="8" placeholder="Qualificar leads de clínicas de estética
+Marcar calls de 30-45 minutos
+Responder objeções comuns
+Acompanhar follow-up em até 4 tentativas"></textarea>
+            </div>
+            <div class="agent-field">
+              <label>Fluxo de conversa</label>
+              <textarea id="cfg_flow" rows="6" placeholder="1. Primeiro contato — gancho + pergunta sobre dor
+2. Qualificação — confirmar fit
+3. Pitch — criar interesse pela call
+4. Agendamento — propor 2 horários
+5. Follow-up — até 4 tentativas"></textarea>
+            </div>
+            <div class="agent-field">
+              <label>Link de agendamento (Calendly, etc.)</label>
+              <input id="cfg_cal_link" placeholder="https://calendly.com/promptx/call-30min" />
+            </div>
+            <div class="agent-actions">
+              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
+              <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
             </div>
           </div>
         </div>
@@ -2481,6 +2800,129 @@
       sessionStorage.removeItem(AUTH_KEY);
       closeSidebar();
       showLogin();
+    }
+
+    /* ═══════════════ AGENTE IA CONFIG ═══════════════ */
+    const AGENT_CFG_KEY = 'promptx_agent_config';
+
+    function switchToAgente(el) {
+      document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('boardWrap').style.display = 'none';
+      document.getElementById('sidebar').classList.add('closed');
+      document.getElementById('chatView').classList.remove('active');
+      document.getElementById('agentView').classList.add('active');
+      if (chatState && chatState.polling) { clearInterval(chatState.polling); chatState.polling = null; }
+      loadAgentConfig();
+    }
+
+    function showAgentSection(name, el) {
+      document.querySelectorAll('.agent-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.agent-nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('agentSec_' + name).classList.add('active');
+      el.classList.add('active');
+    }
+
+    function loadAgentConfig() {
+      try {
+        const cfg = JSON.parse(localStorage.getItem(AGENT_CFG_KEY) || '{}');
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+        set('cfg_webhook_url', cfg.webhookUrl || 'https://n8n.meuagentepro.com/webhook/sdr-promptx');
+        set('cfg_webhook_method', cfg.webhookMethod || 'POST');
+        set('cfg_webhook_auth', cfg.webhookAuth || '');
+        set('cfg_agent_name', cfg.agentName || '');
+        set('cfg_system_prompt', cfg.systemPrompt || '');
+        set('cfg_restrictions', cfg.restrictions || '');
+        set('cfg_blocked_words', cfg.blockedWords || '');
+        set('cfg_skills', cfg.skills || '');
+        set('cfg_flow', cfg.flow || '');
+        set('cfg_cal_link', cfg.calLink || '');
+      } catch (e) { }
+    }
+
+    function getAgentConfig() {
+      const get = id => document.getElementById(id)?.value?.trim() || '';
+      return {
+        webhookUrl: get('cfg_webhook_url'),
+        webhookMethod: get('cfg_webhook_method'),
+        webhookAuth: get('cfg_webhook_auth'),
+        agentName: get('cfg_agent_name'),
+        systemPrompt: get('cfg_system_prompt'),
+        restrictions: get('cfg_restrictions'),
+        blockedWords: get('cfg_blocked_words'),
+        skills: get('cfg_skills'),
+        flow: get('cfg_flow'),
+        calLink: get('cfg_cal_link'),
+      };
+    }
+
+    function saveAgentConfig() {
+      const cfg = getAgentConfig();
+      localStorage.setItem(AGENT_CFG_KEY, JSON.stringify(cfg));
+      toast('Configuração salva ✓');
+    }
+
+    async function sendConfigToN8n() {
+      const cfg = getAgentConfig();
+      if (!cfg.webhookUrl) { toast('Informe a URL do webhook n8n'); return; }
+      saveAgentConfig();
+
+      // Monta o config completo para enviar
+      const payload = {
+        action: 'update_agent_config',
+        agentName: cfg.agentName,
+        systemPrompt: cfg.systemPrompt,
+        restrictions: cfg.restrictions.split('\n').filter(Boolean),
+        blockedWords: cfg.blockedWords.split(',').map(s => s.trim()).filter(Boolean),
+        skills: cfg.skills.split('\n').filter(Boolean),
+        flow: cfg.flow.split('\n').filter(Boolean),
+        calLink: cfg.calLink,
+        updatedAt: new Date().toISOString(),
+      };
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (cfg.webhookAuth) headers['Authorization'] = cfg.webhookAuth;
+
+        const res = await fetch(cfg.webhookUrl, {
+          method: cfg.webhookMethod || 'POST',
+          headers,
+          body: cfg.webhookMethod !== 'GET' ? JSON.stringify(payload) : undefined,
+        });
+
+        if (res.ok) {
+          toast('✅ Configuração enviada para o n8n!');
+        } else {
+          toast('⚠️ Webhook respondeu: ' + res.status);
+        }
+      } catch (e) {
+        toast('Erro ao enviar: ' + e.message);
+      }
+    }
+
+    async function testWebhook() {
+      const url = document.getElementById('cfg_webhook_url').value.trim();
+      const area = document.getElementById('agentWebhookTestArea');
+      if (!url) { area.className = 'agent-test-area err'; area.textContent = '❌ Informe a URL do webhook'; return; }
+      area.className = 'agent-test-area'; area.textContent = 'Testando...';
+
+      try {
+        const auth = document.getElementById('cfg_webhook_auth').value.trim();
+        const headers = { 'Content-Type': 'application/json' };
+        if (auth) headers['Authorization'] = auth;
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ action: 'ping', source: 'promptx-crm', timestamp: new Date().toISOString() }),
+        });
+
+        area.className = 'agent-test-area ok';
+        area.textContent = `✅ Webhook respondeu! Status: ${res.status}`;
+      } catch (e) {
+        area.className = 'agent-test-area err';
+        area.textContent = `❌ Falha na conexão: ${e.message}`;
+      }
     }
 
     /* ═══════════════ CHAT / CONVERSAS ═══════════════ */
