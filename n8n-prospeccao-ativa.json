@@ -1,5 +1,5 @@
 {
-    "name": "SDR PromptX — Prospecção Ativa",
+    "name": "SDR PromptX \u2014 Prospec\u00e7\u00e3o Ativa",
     "nodes": [
         {
             "parameters": {
@@ -35,7 +35,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Valida e normaliza a lista de leads recebida\n// Espera body: { leads: [ { phone: '5511999999999', name: 'João' }, ... ] }\nconst body = $input.first().json;\nconst leads = body.leads || [];\n\nif (!Array.isArray(leads) || leads.length === 0) return [];\n\nreturn leads.map(lead => ({\n  json: {\n    phone: String(lead.phone || '').replace(/\\D/g, ''),\n    name: lead.name || 'amigo(a)'\n  }\n})).filter(l => l.json.phone.length >= 10);"
+                "jsCode": "// Valida e normaliza a lista de leads recebida\n// Espera body: { leads: [ { phone: '5511999999999', name: 'Jo\u00e3o' }, ... ] }\nconst body = $input.first().json;\nconst leads = body.leads || [];\n\nif (!Array.isArray(leads) || leads.length === 0) return [];\n\nreturn leads.map(lead => ({\n  json: {\n    phone: String(lead.phone || '').replace(/\\D/g, ''),\n    name: lead.name || 'amigo(a)'\n  }\n})).filter(l => l.json.phone.length >= 10);"
             },
             "id": "node-p003",
             "name": "Processar Lista",
@@ -63,7 +63,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Gera a mensagem de primeiro contato personalizada\nconst name = $input.first().json.name;\nconst firstName = name.split(' ')[0];\n\n// Mensagem de abertura natural — sem mencionar IA ou robô\nconst mensagens = [\n  `Oi ${firstName}, tudo bem? Trabalho com soluções de atendimento pra clínicas de estética.\\n\\nVocê tem clínica de estética e usa tráfego pago pra atrair pacientes?`,\n  `Ei ${firstName}! Vi que você atua no mercado de estética.\\n\\nSó queria saber: vocês já tentaram automatizar o atendimento do WhatsApp quando vem muito lead de tráfego pago?`,\n  `Oi ${firstName}! Trabalho com um sistema que ajuda clínicas de estética a não perderem lead no WhatsApp.\\n\\nVocês usam tráfego pago atualmente?`\n];\n\n// Sorteia uma variação pra parecer mais humano\nconst msg = mensagens[Math.floor(Math.random() * mensagens.length)];\n\nreturn [{ json: { ...$input.first().json, message: msg } }];"
+                "jsCode": "// Gera a mensagem de primeiro contato personalizada\nconst name = $input.first().json.name;\nconst firstName = name.split(' ')[0];\n\n// Mensagem de abertura natural \u2014 sem mencionar IA ou rob\u00f4\nconst mensagens = [\n  `Oi ${firstName}, tudo bem? Trabalho com solu\u00e7\u00f5es de atendimento pra cl\u00ednicas de est\u00e9tica.\\n\\nVoc\u00ea tem cl\u00ednica de est\u00e9tica e usa tr\u00e1fego pago pra atrair pacientes?`,\n  `Ei ${firstName}! Vi que voc\u00ea atua no mercado de est\u00e9tica.\\n\\nS\u00f3 queria saber: voc\u00eas j\u00e1 tentaram automatizar o atendimento do WhatsApp quando vem muito lead de tr\u00e1fego pago?`,\n  `Oi ${firstName}! Trabalho com um sistema que ajuda cl\u00ednicas de est\u00e9tica a n\u00e3o perderem lead no WhatsApp.\\n\\nVoc\u00eas usam tr\u00e1fego pago atualmente?`\n];\n\n// Sorteia uma varia\u00e7\u00e3o pra parecer mais humano\nconst msg = mensagens[Math.floor(Math.random() * mensagens.length)];\n\nreturn [{ json: { ...$input.first().json, message: msg } }];"
             },
             "id": "node-p005",
             "name": "Gerar Mensagem de Abertura",
@@ -77,7 +77,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://api.z-api.io/instances/3EFAF7CBC4A93154DAE19A95FA8C442C/token/F21AA9BABAB2B9E8160B8BC2/send-text",
+                "url": "={{ $env.EVOLUTION_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
@@ -86,8 +86,8 @@
                             "value": "application/json"
                         },
                         {
-                            "name": "Client-Token",
-                            "value": "F482e7f15fadb4042a6047ab2e70cc69aS"
+                            "name": "apikey",
+                            "value": "={{ $env.EVOLUTION_APIKEY }}"
                         }
                     ]
                 },
@@ -97,12 +97,12 @@
                 "bodyParameters": {
                     "parameters": [
                         {
-                            "name": "phone",
+                            "name": "number",
                             "value": "={{ $json.phone }}"
                         },
                         {
-                            "name": "message",
-                            "value": "={{ $json.message }}"
+                            "name": "textMessage",
+                            "value": "={{ JSON.stringify({ text: $json.message }) }}"
                         }
                     ]
                 },
@@ -119,10 +119,10 @@
         },
         {
             "parameters": {
-                "jsCode": "// Salva no histórico que esse lead foi prospectado (primeiro contato enviado)\nconst staticData = $getWorkflowStaticData('global');\nconst phone = $input.first().json.phone;\nconst message = $input.first().json.message;\n\nconst key = 'hist_' + phone;\nconst history = staticData[key] || [];\n\n// Salva o primeiro contato no histórico compartilhado\nhistory.push({ role: 'assistant', content: message });\nstaticData[key] = history;\n\nreturn [{ json: { phone, status: 'prospectado', timestamp: new Date().toISOString() } }];"
+                "jsCode": "// Salva no hist\u00f3rico que esse lead foi prospectado (primeiro contato enviado)\nconst staticData = $getWorkflowStaticData('global');\nconst phone = $input.first().json.phone;\nconst message = $input.first().json.message;\n\nconst key = 'hist_' + phone;\nconst history = staticData[key] || [];\n\n// Salva o primeiro contato no hist\u00f3rico compartilhado\nhistory.push({ role: 'assistant', content: message });\nstaticData[key] = history;\n\nreturn [{ json: { phone, status: 'prospectado', timestamp: new Date().toISOString() } }];"
             },
             "id": "node-p007",
-            "name": "Salvar no Histórico",
+            "name": "Salvar no Hist\u00f3rico",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
@@ -185,7 +185,7 @@
             "main": [
                 [
                     {
-                        "node": "Salvar no Histórico",
+                        "node": "Salvar no Hist\u00f3rico",
                         "type": "main",
                         "index": 0
                     }
