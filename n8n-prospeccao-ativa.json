@@ -1,0 +1,207 @@
+{
+    "name": "SDR PromptX — Prospecção Ativa",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "prospectar-leads",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "node-p001",
+            "name": "Receber Lista de Leads",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                340
+            ],
+            "webhookId": "prospectar-leads"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={ \"status\": \"disparando\", \"leads\": $json.leads.length }",
+                "options": {}
+            },
+            "id": "node-p002",
+            "name": "Responder 200 OK",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                460,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Valida e normaliza a lista de leads recebida\n// Espera body: { leads: [ { phone: '5511999999999', name: 'João' }, ... ] }\nconst body = $input.first().json;\nconst leads = body.leads || [];\n\nif (!Array.isArray(leads) || leads.length === 0) return [];\n\nreturn leads.map(lead => ({\n  json: {\n    phone: String(lead.phone || '').replace(/\\D/g, ''),\n    name: lead.name || 'amigo(a)'\n  }\n})).filter(l => l.json.phone.length >= 10);"
+            },
+            "id": "node-p003",
+            "name": "Processar Lista",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                460,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "amount": 3,
+                "unit": "seconds"
+            },
+            "id": "node-p004",
+            "name": "Delay entre envios",
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1,
+            "position": [
+                680,
+                340
+            ],
+            "webhookId": "delay-prospeccao"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Gera a mensagem de primeiro contato personalizada\nconst name = $input.first().json.name;\nconst firstName = name.split(' ')[0];\n\n// Mensagem de abertura natural — sem mencionar IA ou robô\nconst mensagens = [\n  `Oi ${firstName}, tudo bem? Trabalho com soluções de atendimento pra clínicas de estética.\\n\\nVocê tem clínica de estética e usa tráfego pago pra atrair pacientes?`,\n  `Ei ${firstName}! Vi que você atua no mercado de estética.\\n\\nSó queria saber: vocês já tentaram automatizar o atendimento do WhatsApp quando vem muito lead de tráfego pago?`,\n  `Oi ${firstName}! Trabalho com um sistema que ajuda clínicas de estética a não perderem lead no WhatsApp.\\n\\nVocês usam tráfego pago atualmente?`\n];\n\n// Sorteia uma variação pra parecer mais humano\nconst msg = mensagens[Math.floor(Math.random() * mensagens.length)];\n\nreturn [{ json: { ...$input.first().json, message: msg } }];"
+            },
+            "id": "node-p005",
+            "name": "Gerar Mensagem de Abertura",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                900,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.z-api.io/instances/3EFAF7CBC4A93154DAE19A95FA8C442C/token/F21AA9BABAB2B9E8160B8BC2/send-text",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Client-Token",
+                            "value": "F482e7f15fadb4042a6047ab2e70cc69aS"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "keypair",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "phone",
+                            "value": "={{ $json.phone }}"
+                        },
+                        {
+                            "name": "message",
+                            "value": "={{ $json.message }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "node-p006",
+            "name": "Enviar Mensagem WPP",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1120,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Salva no histórico que esse lead foi prospectado (primeiro contato enviado)\nconst staticData = $getWorkflowStaticData('global');\nconst phone = $input.first().json.phone;\nconst message = $input.first().json.message;\n\nconst key = 'hist_' + phone;\nconst history = staticData[key] || [];\n\n// Salva o primeiro contato no histórico compartilhado\nhistory.push({ role: 'assistant', content: message });\nstaticData[key] = history;\n\nreturn [{ json: { phone, status: 'prospectado', timestamp: new Date().toISOString() } }];"
+            },
+            "id": "node-p007",
+            "name": "Salvar no Histórico",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1340,
+                340
+            ]
+        }
+    ],
+    "connections": {
+        "Receber Lista de Leads": {
+            "main": [
+                [
+                    {
+                        "node": "Responder 200 OK",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Processar Lista",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Processar Lista": {
+            "main": [
+                [
+                    {
+                        "node": "Delay entre envios",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delay entre envios": {
+            "main": [
+                [
+                    {
+                        "node": "Gerar Mensagem de Abertura",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gerar Mensagem de Abertura": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar Mensagem WPP",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Enviar Mensagem WPP": {
+            "main": [
+                [
+                    {
+                        "node": "Salvar no Histórico",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [
+        "sdr",
+        "whatsapp",
+        "prospeccao-ativa",
+        "promptx"
+    ],
+    "versionId": "1"
+}

@@ -1,0 +1,305 @@
+{
+    "name": "SDR PromptX — Agente WhatsApp v2",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "sdr-promptx",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "node-001",
+            "name": "Receber Mensagem WPP",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                340
+            ],
+            "webhookId": "sdr-promptx"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {}
+            },
+            "id": "node-002",
+            "name": "Responder 200 OK",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                460,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extrai dados da mensagem Z-API\nconst body = $input.first().json.body || $input.first().json;\n\n// Ignora mensagens enviadas por mim\nif (body.fromMe === true) return [];\n\n// Ignora grupos\nif (body.isGroupMsg === true) return [];\n\n// Extrai campos principais\nconst phone   = String(body.phone || body.from || '').replace(/\\D/g, '');\nconst message = body.message?.conversation\n  || body.text?.message\n  || body.message?.extendedTextMessage?.text\n  || '';\nconst name    = body.senderName || body.pushName || 'Lead';\n\nif (!phone || !message.trim()) return [];\n\nreturn [{ json: { phone, message: message.trim(), name } }];"
+            },
+            "id": "node-003",
+            "name": "Extrair Dados Z-API",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                460,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Carrega e salva histórico de conversa por telefone (memória local)\nconst staticData = $getWorkflowStaticData('global');\nconst phone      = $input.first().json.phone;\nconst message    = $input.first().json.message;\nconst name       = $input.first().json.name;\n\nconst key     = 'hist_' + phone;\nconst history = staticData[key] || [];\n\n// Adiciona mensagem do lead\nhistory.push({ role: 'user', content: `[${name}]: ${message}` });\n\n// Limita a 20 mensagens (10 trocas)\nif (history.length > 20) history.splice(0, history.length - 20);\n\nstaticData[key] = history;\n\nreturn [{ json: { phone, name, message, history, historyKey: key } }];"
+            },
+            "id": "node-004",
+            "name": "Carregar Histórico",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                680,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.openai.com/v1/chat/completions",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer YOUR_OPENAI_API_KEY_HERE"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o', temperature: 0.7, messages: [ { role: 'system', content: `Você é um SDR da PromptX, empresa que vende agentes de IA para clínicas de estética.\\n\\nSeu ÚNICO objetivo: marcar uma CALL de 30-45 minutos com o proprietário da clínica.\\n\\nREGRAS ABSOLUTAS:\\n- Máximo 3 linhas por mensagem (estamos no WhatsApp)\\n- Sempre terminar com UMA pergunta\\n- Nunca mencionar 'IA' ou 'chatbot' no primeiro contato\\n- Nunca revelar preço antes da call\\n- Falar como humano, natural e direto\\n- Não parecer vendedor\\n\\nFLUXO:\\n1. PRIMEIRO CONTATO — gancho curto + pergunta sobre tráfego pago\\n2. QUALIFICAÇÃO — confirmar: tem clínica de estética? usa tráfego? tem dor com atendimento?\\n3. PITCH CURTO — criar interesse pela call (não vender o produto)\\n4. AGENDAMENTO — propor 2 opções de horário (nunca pergunta aberta)\\n5. FOLLOW-UP — até 4 tentativas sem resposta\\n\\nQUALIFICADO se: clínica de estética ativa + investe em tráfego + tem dor com atendimento\\nNÃO QUALIFICADO se: outra especialidade, sem tráfego, sem volume de leads\\n\\nOBJEÇÕES:\\n- 'Já tenho recepcionista' → IA desafoga ela do WhatsApp\\n- 'Vai parecer robô?' → treinado com linguagem da clínica, pacientes não percebem\\n- 'Quanto custa?' → depende da clínica, a call é pra entender o caso\\n- 'Não tenho tempo' → quando seria melhor? Adapto ao horário\\n- 'Já conheço' → o que usa? O nosso tem integração específica com agenda\\n\\nQUANDO O LEAD ACEITAR A CALL:\\nResponda normalmente e instrua o lead a acessar o link de agendamento:\\nhttps://calendly.com/promptx/call-30min\\n\\nFORMATO DE MENSAGEM:\\n- Máximo 3 linhas\\n- Uma pergunta no final\\n- Tom natural, sem excessos de emoji` }, ...$input.first().json.history ] }) }}",
+                "options": {}
+            },
+            "id": "node-005",
+            "name": "GPT-4o SDR",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                900,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Processa resposta do GPT e salva no histórico\nconst historyKey = $('Carregar Histórico').first().json.historyKey;\nconst phone      = $('Carregar Histórico').first().json.phone;\nconst gptBody    = $input.first().json;\nconst reply      = gptBody.choices?.[0]?.message?.content || 'Desculpe, tive um problema técnico. Pode repetir?';\n\n// Salva resposta do assistente no histórico\nconst staticData = $getWorkflowStaticData('global');\nconst history    = staticData[historyKey] || [];\nhistory.push({ role: 'assistant', content: reply });\nif (history.length > 20) history.splice(0, history.length - 20);\nstaticData[historyKey] = history;\n\nreturn [{ json: { phone, reply } }];"
+            },
+            "id": "node-006",
+            "name": "Processar Resposta GPT",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1120,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://api.z-api.io/instances/3EFAF7CBC4A93154DAE19A95FA8C442C/token/F21AA9BABAB2B9E8160B8BC2/send-text",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Client-Token",
+                            "value": "F482e7f15fadb4042a6047ab2e70cc69aS"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "keypair",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "phone",
+                            "value": "={{ $json.phone }}"
+                        },
+                        {
+                            "name": "message",
+                            "value": "={{ $json.reply }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "node-007",
+            "name": "Enviar Resposta WPP",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1560,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "method": "GET",
+                "url": "=https://script.google.com/macros/s/AKfycbyGhXVhF6PSIoh36aggLrDgbImLblFVBF7tT_eGDwxmyUfQtApOpAzzk9TgVmKwyHwGZA/exec?action=automation_ai_status&phone={{ $json.phone }}&apiKey=XL%2B2ln8hgqCcErsZWpvT3EoC%2FKX8Ept%2B",
+                "options": {}
+            },
+            "id": "node-008",
+            "name": "Verificar IA Ativa",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                900,
+                340
+            ],
+            "continueOnFail": true
+        },
+        {
+            "parameters": {
+                "jsCode": "// Se a IA estiver desativada para este n\u00famero, para o workflow\nconst aiStatus = $input.first().json;\nconst histData = $('Carregar Hist\u00f3rico').first().json;\n\n// Se erro na chamada ou aiEnabled=false, para aqui\nif (aiStatus.aiEnabled === false) {\n  console.log('[SDR] IA desativada para ' + histData.phone + '. Modo manual ativo.');\n  return []; // Para o workflow — n\u00e3o envia resposta\n}\n\n// Passa os dados do hist\u00f3rico para o pr\u00f3ximo node\nreturn [{ json: histData }];"
+            },
+            "id": "node-009",
+            "name": "Filtrar IA Desativada",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1120,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://script.google.com/macros/s/AKfycbyGhXVhF6PSIoh36aggLrDgbImLblFVBF7tT_eGDwxmyUfQtApOpAzzk9TgVmKwyHwGZA/exec",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ action: 'webhook_save_message', phone: $('Carregar Hist\u00f3rico').first().json.phone, role: 'user', content: $('Carregar Hist\u00f3rico').first().json.message }) }}",
+                "options": {}
+            },
+            "id": "node-010",
+            "name": "Salvar Msg Lead",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                900,
+                520
+            ],
+            "continueOnFail": true
+        }
+    ],
+    "connections": {
+        "Receber Mensagem WPP": {
+            "main": [
+                [
+                    {
+                        "node": "Responder 200 OK",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Extrair Dados Z-API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extrair Dados Z-API": {
+            "main": [
+                [
+                    {
+                        "node": "Carregar Histórico",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Carregar Histórico": {
+            "main": [
+                [
+                    {
+                        "node": "Verificar IA Ativa",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Salvar Msg Lead",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Verificar IA Ativa": {
+            "main": [
+                [
+                    {
+                        "node": "Filtrar IA Desativada",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filtrar IA Desativada": {
+            "main": [
+                [
+                    {
+                        "node": "GPT-4o SDR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "GPT-4o SDR": {
+            "main": [
+                [
+                    {
+                        "node": "Processar Resposta GPT",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Processar Resposta GPT": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar Resposta WPP",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [
+        "sdr",
+        "whatsapp",
+        "promptx"
+    ],
+    "versionId": "3"
+}

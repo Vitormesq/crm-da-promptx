@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptX CRM</title>
+  <script src="config.js"></script>
+  <script src="calendar-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #0a0b0f;
+      --surface: #111219;
+      --s2: #181921;
+      --s3: #1e2030;
+      --b: rgba(255, 255, 255, .07);
+      --bh: rgba(255, 255, 255, .14);
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --dim: #9ca3af;
+      --accent: #6c63ff;
+      --a2: #8b5cf6;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --blue: #3b82f6;
+      --orange: #f97316;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 54px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--b);
+      gap: 12px
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 800;
+      white-space: nowrap
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0
+    }
+
+    .hright {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .stat {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 3px
+    }
+
+    .stat b {
+      color: var(--text)
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      margin-right: 4px;
+      transition: background .3s
+    }
+
+    .sync-dot.online {
+      background: var(--green)
+    }
+
+    .sync-dot.syncing {
+      background: var(--yellow);
+      animation: pulse 1s infinite
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    /* TABS */
+    .ptabs {
+      display: flex;
+      gap: 2px;
+      background: var(--s2);
+      border-radius: 8px;
+      padding: 3px;
+      flex-shrink: 0
+    }
+
+    .ptab {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+      color: var(--muted);
+      background: transparent
+    }
+
+    .ptab.active {
+      background: var(--s3);
+      color: var(--text)
+    }
+
+    /* BTN */
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap
+    }
+
+    .bp {
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      color: #fff
+    }
+
+    .bp:hover {
+      opacity: .9
+    }
+
+    .bg {
+      background: var(--s3);
+      color: var(--dim);
+      border: 1px solid var(--b)
+    }
+
+    .bg:hover {
+      border-color: var(--bh);
+      color: var(--text)
+    }
+
+    /* SUBHEADER */
+    .subheader {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      gap: 8px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--b);
+      overflow-x: auto;
+      scrollbar-width: none
+    }
+
+    .subheader::-webkit-scrollbar {
+      display: none
+    }
+
+    .ftab {
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 1px solid var(--b);
+      background: var(--s2);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: all .15s
+    }
+
+    .ftab.active {
+      background: var(--s3);
+      border-color: var(--bh);
+      color: var(--text)
+    }
+
+    .ftab.fc.active {
+      background: rgba(59, 130, 246, .15);
+      border-color: var(--blue);
+      color: var(--blue)
+    }
+
+    .ftab.fm.active {
+      background: rgba(16, 185, 129, .15);
+      border-color: var(--green);
+      color: var(--green)
+    }
+
+    .ftab.fh.active {
+      background: rgba(239, 68, 68, .13);
+      border-color: var(--red);
+      color: var(--red)
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden
+    }
+
+    .board-wrap {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 14px 12px
+    }
+
+    .board {
+      display: flex;
+      gap: 10px;
+      height: 100%;
+      min-width: max-content
+    }
+
+    /* COLUMN */
+    .col {
+      width: 220px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      border: 1px solid var(--b);
+      background: var(--surface);
+      overflow: hidden
+    }
+
+    .col-head {
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--b);
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .col-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .col-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%
+    }
+
+    .col-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--s2);
+      padding: 2px 6px;
+      border-radius: 99px
+    }
+
+    .col-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-height: 60px
+    }
+
+    .col-body::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .col-body::-webkit-scrollbar-thumb {
+      background: var(--s3);
+      border-radius: 99px
+    }
+
+    /* DRAG STATES */
+    .col-body.drag-over {
+      background: rgba(108, 99, 255, .06);
+      border-radius: 8px
+    }
+
+    .sortable-ghost {
+      opacity: .3;
+      border: 2px dashed var(--accent) !important
+    }
+
+    .sortable-drag {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
+      transform: rotate(1deg)
+    }
+
+    /* CARD */
+    .card {
+      background: var(--s2);
+      border: 1px solid var(--b);
+      border-radius: 9px;
+      padding: 10px 11px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      user-select: none
+    }
+
+    .card:hover {
+      border-color: var(--bh);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .35)
+    }
+
+    .card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent)
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      justify-content: space-between
+    }
+
+    .card-name {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.3
+    }
+
+    .card-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px
+    }
+
+    .badge {
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0
+    }
+
+    .b-call {
+      background: rgba(59, 130, 246, .15);
+      color: var(--blue);
+      border: 1px solid rgba(59, 130, 246, .3)
+    }
+
+    .b-msg {
+      background: rgba(16, 185, 129, .15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, .3)
+    }
+
+    .b-wait {
+      background: rgba(107, 114, 128, .12);
+      color: var(--muted);
+      border: 1px solid rgba(107, 114, 128, .2)
+    }
+
+    .card-city {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 5px
+    }
+
+    .card-note {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--s3);
+      border-radius: 5px;
+      padding: 5px 7px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .prio-pip {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 99px 0 0 99px
+    }
+
+    .ph {
+      background: var(--red)
+    }
+
+    .pm {
+      background: var(--yellow)
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 6px;
+      background: transparent;
+      border: 1.5px dashed var(--b);
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px
+    }
+
+    .add-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    .empty-col {
+      text-align: center;
+      padding: 16px 8px;
+      color: var(--muted);
+      font-size: 11px;
+      opacity: .5
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 340px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-left: 1px solid var(--b);
+      display: flex;
+      flex-direction: column;
+      transition: width .25s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .sidebar.closed {
+      width: 0;
+      overflow: hidden
+    }
+
+    .sb-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--b);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0
+    }
+
+    .sb-title {
+      font-size: 14px;
+      font-weight: 800
+    }
+
+    .sb-close {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      color: var(--muted);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .sb-close:hover {
+      color: var(--text);
+      border-color: var(--bh)
+    }
+
+    .sb-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px
+    }
+
+    .sb-body::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .sb-body::-webkit-scrollbar-thumb {
+      background: var(--s3);
+      border-radius: 99px
+    }
+
+    .fld {
+      margin-bottom: 10px
+    }
+
+    .fl {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--muted);
+      margin-bottom: 4px
+    }
+
+    .fld input,
+    .fld select,
+    .fld textarea {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      transition: border-color .15s
+    }
+
+    .fld input:focus,
+    .fld select:focus,
+    .fld textarea:focus {
+      outline: none;
+      border-color: var(--accent)
+    }
+
+    .fld select option {
+      background: var(--s2)
+    }
+
+    .fld textarea {
+      resize: vertical;
+      min-height: 75px;
+      line-height: 1.5
+    }
+
+    .frow {
+      display: flex;
+      gap: 8px
+    }
+
+    .frow .fld {
+      flex: 1
+    }
+
+    .div {
+      height: 1px;
+      background: var(--b);
+      margin: 12px 0
+    }
+
+    .slabel {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--muted);
+      margin-bottom: 7px
+    }
+
+    .tgg {
+      display: flex;
+      gap: 5px
+    }
+
+    .tg {
+      flex: 1;
+      padding: 6px 4px;
+      border-radius: 7px;
+      border: 1px solid var(--b);
+      background: var(--s2);
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .15s;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px
+    }
+
+    .tg.ac {
+      background: rgba(59, 130, 246, .15);
+      border-color: var(--blue);
+      color: var(--blue)
+    }
+
+    .tg.am {
+      background: rgba(16, 185, 129, .15);
+      border-color: var(--green);
+      color: var(--green)
+    }
+
+    .tg.aw {
+      background: var(--s3);
+      border-color: var(--bh);
+      color: var(--dim)
+    }
+
+    .tg.ah {
+      background: rgba(239, 68, 68, .12);
+      border-color: var(--red);
+      color: var(--red)
+    }
+
+    .tg.amm {
+      background: rgba(245, 158, 11, .12);
+      border-color: var(--yellow);
+      color: var(--yellow)
+    }
+
+    .tg.al {
+      background: var(--s3);
+      border-color: var(--bh);
+      color: var(--dim)
+    }
+
+    .log-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .log-item {
+      display: flex;
+      gap: 8px
+    }
+
+    .log-d {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-top: 4px;
+      flex-shrink: 0
+    }
+
+    .log-txt {
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.4
+    }
+
+    .log-time {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 1px
+    }
+
+    .log-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .log-inp {
+      flex: 1;
+      padding: 7px 10px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px
+    }
+
+    .log-inp:focus {
+      outline: none;
+      border-color: var(--accent)
+    }
+
+    .log-sub {
+      padding: 7px 11px;
+      border-radius: 7px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .sb-foot {
+      padding: 12px 16px;
+      border-top: 1px solid var(--b);
+      display: flex;
+      gap: 7px;
+      flex-shrink: 0
+    }
+
+    .bsave {
+      flex: 1;
+      padding: 9px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .bcal {
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(16, 185, 129, .15);
+      border: 1px solid rgba(16, 185, 129, .3);
+      color: var(--green);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .bcal:hover {
+      background: rgba(16, 185, 129, .25)
+    }
+
+    .bdel {
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, .1);
+      border: 1px solid rgba(239, 68, 68, .3);
+      color: var(--red);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .bdel:hover {
+      background: rgba(239, 68, 68, .2)
+    }
+
+    /* MODALS */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .65);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px
+    }
+
+    .overlay.open {
+      display: flex
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--b);
+      border-radius: 14px;
+      padding: 24px;
+      width: 460px;
+      max-width: 100%
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 18px
+    }
+
+    .mactions {
+      display: flex;
+      gap: 7px;
+      margin-top: 18px;
+      justify-content: flex-end
+    }
+
+    /* Calendar Modal */
+    .cal-modal {
+      width: 500px;
+      max-width: 100%
+    }
+
+    .cal-icon {
+      font-size: 32px;
+      margin-bottom: 12px
+    }
+
+    .cal-link-preview {
+      font-size: 11px;
+      color: var(--green);
+      background: rgba(16, 185, 129, .1);
+      border: 1px solid rgba(16, 185, 129, .2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-top: 6px;
+      word-break: break-all
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      border-radius: 9px;
+      background: var(--s3);
+      border: 1px solid var(--bh);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 999;
+      transform: translateY(60px);
+      opacity: 0;
+      transition: all .3s
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1
+    }
+
+    /* MOBILE */
+    .sb-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      z-index: 150
+    }
+
+    /* FAB — floating action button (mobile only) */
+    #fabAdd {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 500;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      color: #fff;
+      font-size: 28px;
+      font-weight: 300;
+      line-height: 1;
+      box-shadow: 0 6px 24px rgba(108, 99, 255, .55);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      display: none
+    }
+
+    #fabAdd:active {
+      transform: scale(.92);
+      box-shadow: 0 3px 12px rgba(108, 99, 255, .4)
+    }
+
+    @media(max-width:768px) {
+
+      /* ── Header ── */
+      header {
+        padding: 0 10px;
+        height: 48px;
+        gap: 6px
+      }
+
+      .logo span {
+        display: none
+      }
+
+      .stats {
+        display: none
+      }
+
+      .hright {
+        gap: 5px
+      }
+
+      /* Hide header add button on mobile — FAB replaces it */
+      #btnMainAdd {
+        display: none !important
+      }
+
+      /* Show FAB on mobile */
+      #fabAdd {
+        display: flex !important;
+        align-items: center;
+        justify-content: center
+      }
+
+      /* Hide emoji from pipeline tabs to save header space */
+      .ptab-emoji {
+        display: none
+      }
+
+      /* Shrink pipeline tab text */
+      .ptab {
+        padding: 4px 8px;
+        font-size: 11px
+      }
+
+      /* Shrink logout button */
+      .logout-btn {
+        font-size: 11px;
+        padding: 5px 8px
+      }
+
+      #userChip span {
+        display: none
+      }
+
+      #userChip .role {
+        display: none
+      }
+
+
+      /* ── Filter subheader ── */
+      .subheader {
+        padding: 6px 10px;
+        gap: 6px;
+        -webkit-overflow-scrolling: touch
+      }
+
+      .ftab {
+        padding: 4px 10px;
+        font-size: 10px
+      }
+
+      /* ── Board — horizontal snap scroll ── */
+      .board-wrap {
+        padding: 10px 6px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 6px
+      }
+
+      .board {
+        gap: 8px;
+        height: 100%
+      }
+
+      .col {
+        width: 85vw;
+        max-width: 320px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        height: 100%
+      }
+
+      .col-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch
+      }
+
+      /* ── Cards — bigger touch targets ── */
+      .card {
+        padding: 12px 12px
+      }
+
+      .card-name {
+        font-size: 13px
+      }
+
+      /* ── Sidebar — bottom-sheet ── */
+      .sidebar {
+        position: fixed;
+        inset: auto 0 0 0;
+        width: 100% !important;
+        height: 90vh;
+        border-left: none;
+        border-top: 1px solid var(--b);
+        border-radius: 20px 20px 0 0;
+        z-index: 200;
+        transform: translateY(100%);
+        transition: transform .3s cubic-bezier(.4, 0, .2, 1)
+      }
+
+      .sidebar::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: var(--bh);
+        border-radius: 99px;
+        margin: 10px auto 0;
+        flex-shrink: 0
+      }
+
+      .sidebar.open-m {
+        transform: translateY(0)
+      }
+
+      .sidebar.closed {
+        transform: translateY(100%);
+        width: 100% !important
+      }
+
+      .sb-overlay {
+        display: block
+      }
+
+      .sb-body {
+        padding: 12px 16px
+      }
+
+      /* ── Modals — full screen on mobile ── */
+      .overlay {
+        padding: 0;
+        align-items: flex-end
+      }
+
+      .modal {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+        padding: 20px 18px 32px;
+        max-height: 92vh;
+        overflow-y: auto
+      }
+
+      .cal-modal {
+        width: 100%;
+        max-width: 100%
+      }
+
+      .mactions {
+        flex-direction: column-reverse
+      }
+
+      .mactions .btn {
+        width: 100%;
+        justify-content: center
+      }
+
+      /* ── Footer save buttons ── */
+      .sb-foot {
+        padding: 12px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom))
+      }
+
+      /* ── Toast above sidebar ── */
+      .toast {
+        bottom: calc(90vh + 8px);
+        right: 12px
+      }
+
+      /* ── Form rows stack on mobile ── */
+      .frow {
+        flex-direction: column
+      }
+    }
+
+    /* Extra small phones */
+    @media(max-width:430px) {
+      .col {
+        width: 88vw
+      }
+
+      .ptabs {
+        gap: 1px
+      }
+
+      .ptab {
+        padding: 4px 6px;
+        font-size: 10px
+      }
+    }
+
+    /* ══ LOGIN PAGE ══ */
+    .login-page {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 30% 40%, #1a1060 0%, #0a0b0f 55%, #0d0e1a 100%);
+    }
+
+    .login-card {
+      width: 380px;
+      max-width: 92vw;
+      background: var(--surface);
+      border: 1px solid var(--b);
+      border-radius: 20px;
+      padding: 40px 36px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .6);
+      animation: fadeUp .4s ease both
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px
+    }
+
+    .login-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0
+    }
+
+    .login-brand {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1
+    }
+
+    .login-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 3px
+    }
+
+    .login-inp-wrap {
+      position: relative
+    }
+
+    .login-inp-wrap input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      transition: border-color .15s
+    }
+
+    .login-inp-wrap input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, .15)
+    }
+
+    .login-eye {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px
+    }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s
+    }
+
+    .login-btn:hover {
+      opacity: .9
+    }
+
+    .login-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .login-err {
+      margin-top: 12px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, .12);
+      border: 1px solid rgba(239, 68, 68, .3);
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 600;
+      display: none
+    }
+
+    .login-remember {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .login-remember input {
+      cursor: pointer
+    }
+
+    .login-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted)
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dim);
+      cursor: default
+    }
+
+    .user-chip .role {
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 400
+    }
+
+    .logout-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid var(--b);
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .logout-btn:hover {
+      border-color: var(--red);
+      color: var(--red)
+    }
+
+    /* ══ CHAT PANEL ══ */
+    .chat-view {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .chat-view.active {
+      display: flex;
+    }
+
+    .chat-list {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--b);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-list-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--b);
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .chat-list-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .chat-list-body::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .chat-lead-item {
+      padding: 10px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: background .15s;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .chat-lead-item:hover {
+      background: var(--s2);
+    }
+
+    .chat-lead-item.active {
+      background: rgba(108, 99, 255, .12);
+      border-color: rgba(108, 99, 255, .3);
+    }
+
+    .chat-lead-name {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chat-lead-phone {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .chat-lead-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 99px;
+      margin-top: 4px;
+    }
+
+    .badge-ai-on {
+      background: rgba(16, 185, 129, .15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, .3);
+    }
+
+    .badge-ai-off {
+      background: rgba(107, 114, 128, .1);
+      color: var(--muted);
+      border: 1px solid rgba(107, 114, 128, .2);
+    }
+
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-main-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--b);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .chat-main-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .chat-main-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .ai-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .ai-toggle-btn.on {
+      background: rgba(16, 185, 129, .15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, .3);
+    }
+
+    .ai-toggle-btn.off {
+      background: rgba(107, 114, 128, .1);
+      color: var(--muted);
+      border: 1px solid rgba(107, 114, 128, .2);
+    }
+
+    .ai-toggle-switch {
+      width: 32px;
+      height: 18px;
+      border-radius: 99px;
+      position: relative;
+      transition: background .2s;
+    }
+
+    .ai-toggle-btn.on .ai-toggle-switch {
+      background: var(--green);
+    }
+
+    .ai-toggle-btn.off .ai-toggle-switch {
+      background: var(--muted);
+    }
+
+    .ai-toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px;
+      transition: left .2s;
+    }
+
+    .ai-toggle-btn.on .ai-toggle-switch::after {
+      left: 17px;
+    }
+
+    .ai-toggle-btn.off .ai-toggle-switch::after {
+      left: 3px;
+    }
+
+    .chat-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-msgs::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .chat-msg {
+      max-width: 72%;
+      padding: 10px 13px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chat-msg.user {
+      background: var(--s2);
+      border: 1px solid var(--b);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-msg.assistant {
+      background: rgba(108, 99, 255, .15);
+      border: 1px solid rgba(108, 99, 255, .25);
+      color: #d4d0ff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg-time {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .chat-msg.user .chat-msg-time {
+      text-align: left;
+    }
+
+    .chat-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--b);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 9px;
+      background: var(--s2);
+      border: 1px solid var(--b);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      transition: border-color .15s;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .chat-send-btn {
+      padding: 10px 16px;
+      border-radius: 9px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--a2));
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .chat-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 13px;
+      gap: 8px;
+    }
+
+    .chat-loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="mainUI" style="display:none;flex-direction:column;height:100%">
+
+    <header>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="logo">
+          <div class="logo-icon">🎯</div>
+          PromptX <span style="color:var(--muted);font-weight:400;font-size:13px;margin-left:2px">/ CRM</span>
+        </div>
+        <div class="stats" id="statsBar"></div>
+      </div>
+      <div class="hright">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+          <div class="sync-dot" id="syncDot"></div>
+          <span id="syncLabel">Local</span>
+        </div>
+        <div id="userChip" class="user-chip" style="display:none"></div>
+        <div class="ptabs">
+          <button class="ptab active" onclick="switchPipeline('sdr',this)"><span class="ptab-emoji">🎯
+            </span>SDR</button>
+          <button class="ptab" onclick="switchPipeline('traffic',this)"><span class="ptab-emoji">📣
+            </span>Tráfego</button>
+          <button class="ptab" onclick="switchPipeline('tasks',this)"><span class="ptab-emoji">☑️
+            </span>Tarefas</button>
+          <button class="ptab" id="tabConversas" onclick="switchToChat(this)"><span class="ptab-emoji">💬
+            </span>Conversas</button>
+        </div>
+        <button class="btn bp" id="btnMainAdd" onclick="openModal()">+ Lead</button>
+        <button class="logout-btn" id="logoutBtn" style="display:none" onclick="logout()">Sair</button>
+      </div>
+    </header>
+    <!-- FAB mobile: botão flutuante para adicionar lead/tarefa -->
+    <button id="fabAdd" onclick="openModal()" style="display:none">+</button>
+
+    <div class="subheader">
+      <div id="filterTabs"></div>
+    </div>
+
+    <div class="main">
+      <div class="board-wrap" id="boardWrap">
+        <div class="board" id="board"></div>
+      </div>
+      <div class="sidebar closed" id="sidebar">
+        <div class="sb-head">
+          <div class="sb-title" id="sbTitle">Lead</div>
+          <button class="sb-close" onclick="closeSidebar()">✕</button>
+        </div>
+        <div class="sb-body" id="sbBody"></div>
+        <div class="sb-foot">
+          <button class="bsave" onclick="saveLead()">Salvar</button>
+          <button class="bcal" onclick="openCalModal()" title="Agendar no Google Calendar">📅</button>
+          <button class="bdel" onclick="deleteLead()">✕</button>
+        </div>
+      </div>
+      <!-- CHAT PANEL -->
+      <div class="chat-view" id="chatView">
+        <div class="chat-list">
+          <div class="chat-list-head">💬 Conversas WPP</div>
+          <div class="chat-list-body" id="chatLeadList">
+            <div class="chat-loading">Carregando leads...</div>
+          </div>
+        </div>
+        <div class="chat-main" id="chatMain">
+          <div class="chat-empty" id="chatEmpty">
+            <span style="font-size:36px">💬</span>
+            <span>Selecione um lead para ver a conversa</span>
+          </div>
+          <div id="chatConvo" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+            <div class="chat-main-head">
+              <div>
+                <div class="chat-main-title" id="chatLeadName">—</div>
+                <div class="chat-main-sub" id="chatLeadPhone">—</div>
+              </div>
+              <button class="ai-toggle-btn on" id="aiToggleBtn" onclick="toggleAI()">
+                <div class="ai-toggle-switch"></div>
+                <span id="aiToggleLabel">🤖 IA Ativa</span>
+              </button>
+            </div>
+            <div class="chat-msgs" id="chatMsgs"></div>
+            <div class="chat-footer">
+              <input class="chat-input" id="chatInput" placeholder="Enviar mensagem manual..."
+                onkeypress="if(event.key==='Enter')sendManualMsg()" />
+              <button class="chat-send-btn" onclick="sendManualMsg()">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Modal novo lead -->
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <div class="modal-title" id="modalTitle">➕ Novo Lead</div>
+        <div id="modalFieldsLeads">
+          <div class="frow">
+            <div class="fld">
+              <div class="fl">Nome</div><input id="m_name" placeholder="Ex: Dra. Ana Lima" />
+            </div>
+            <div class="fld">
+              <div class="fl">Cidade</div><input id="m_city" placeholder="Ex: Goiânia" />
+            </div>
+          </div>
+          <div class="fld" style="margin-top:10px">
+            <div class="fl">Clínica</div><input id="m_clinic" placeholder="Nome da clínica" />
+          </div>
+          <div class="fld" style="margin-top:10px">
+            <div class="fl">WhatsApp</div><input id="m_phone" placeholder="(62) 9..." />
+          </div>
+        </div>
+        <div id="modalFieldsTasks" style="display:none">
+          <div class="fld">
+            <div class="fl">Título da Tarefa</div><input id="m_task_name" placeholder="Descreva a tarefa..." />
+          </div>
+          <div class="frow" style="margin-top:10px">
+            <div class="fld">
+              <div class="fl">Responsável</div>
+              <select id="m_task_assignee">
+                <option value="">👥 Sem responsável</option>
+                <option value="vitor">👤 Vitor</option>
+                <option value="gabriel">👤 Gabriel</option>
+                <option value="andre">👤 André</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="fld" style="margin-top:10px">
+          <div class="fl">Etapa</div><select id="m_stage"></select>
+        </div>
+        <div class="mactions">
+          <button class="btn bg" onclick="closeModal()">Cancelar</button>
+          <button class="btn bp" id="btnModalCreate" onclick="createLead()">Criar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Google Calendar -->
+    <div class="overlay" id="calOverlay">
+      <div class="modal cal-modal">
+        <div class="cal-icon">📅</div>
+        <div class="modal-title">Agendar Call no Google Calendar</div>
+        <div class="frow">
+          <div class="fld" style="flex:2">
+            <div class="fl">Título do Evento</div><input id="cal_title" placeholder="Ex: Call PromptX — Dra. Ana" />
+          </div>
+        </div>
+        <div class="frow" style="margin-top:10px">
+          <div class="fld">
+            <div class="fl">Data</div><input id="cal_date" type="date" />
+          </div>
+          <div class="fld">
+            <div class="fl">Horário</div><input id="cal_time" type="time" value="10:00" />
+          </div>
+          <div class="fld">
+            <div class="fl">Duração (min)</div><input id="cal_dur" type="number" value="45" min="15" step="15" />
+          </div>
+        </div>
+        <div class="fld" style="margin-top:10px">
+          <div class="fl">Link da Reunião (Meet / Zoom)</div>
+          <input id="cal_meet" placeholder="https://meet.google.com/..." />
+        </div>
+        <div class="fld" style="margin-top:10px">
+          <div class="fl">E-mail do Lead (opcional — para convidar)</div>
+          <input id="cal_email" type="email" placeholder="email@clinica.com.br" />
+        </div>
+        <div class="fld" style="margin-top:10px">
+          <div class="fl">Observações</div>
+          <textarea id="cal_notes" placeholder="Contexto da call, o que precisa mostrar..." rows="3"></textarea>
+        </div>
+        <div id="calResult" style="display:none" class="cal-link-preview"></div>
+        <div class="mactions">
+          <button class="btn bg" onclick="closeCalModal()">Cancelar</button>
+          <button class="btn bp" id="calSubmitBtn" onclick="scheduleCall()">📅 Criar Evento</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+  </div><!-- /mainUI -->
+
+  <script>
+    /* ═══════════════ PIPELINES ═══════════════ */
+    const PIPELINES = {
+      sdr: {
+        filters: [
+          { id: 'all', l: 'Todos' }, { id: 'call', l: '📞 Ligar', c: 'fc' }, { id: 'msg', l: '💬 Mensagem', c: 'fm' }, { id: 'hot', l: '🔴 Urgente', c: 'fh' }
+        ],
+        stages: [
+          { id: 'cold', l: 'Lista Fria', dot: '#4a6fa5', col: '#7ba4d4', e: '🧊' },
+          { id: 'contact', l: 'Contato Feito', dot: '#3b8fbf', col: '#6ab8e8', e: '📤' },
+          { id: 'qualify', l: 'Qualificando', dot: '#3b9e7c', col: '#5dc9a3', e: '🔍' },
+          { id: 'pitch', l: 'Pitch Feito', dot: '#7c5cbf', col: '#a585e8', e: '💬' },
+          { id: 'call', l: 'Call Agendada', dot: '#2e8a5c', col: '#4fb884', e: '📅' },
+          { id: 'followup', l: 'Follow-up', dot: '#c27c2a', col: '#e8a855', e: '🔄' },
+          { id: 'closed', l: 'Fechado ✅', dot: '#2e7d32', col: '#4caf50', e: '🏆' },
+          { id: 'lost', l: 'Perdido ❌', dot: '#9e2e2e', col: '#e57373', e: '💔' },
+        ],
+        defaultStage: 'cold',
+      },
+      traffic: {
+        filters: [
+          { id: 'all', l: 'Todos' }, { id: 'call', l: '📞 Ligar', c: 'fc' }, { id: 'msg', l: '💬 Mensagem', c: 'fm' }, { id: 'hot', l: '🔴 Urgente', c: 'fh' }
+        ],
+        stages: [
+          { id: 'new', l: 'Novo Lead', dot: '#3b5bdb', col: '#74a3ff', e: '⚡' },
+          { id: 'attending', l: 'Em Atendimento', dot: '#3b8fbf', col: '#6ab8e8', e: '🤖' },
+          { id: 'qualified', l: 'Qualificado', dot: '#3b9e7c', col: '#5dc9a3', e: '✅' },
+          { id: 'scheduled', l: 'Avaliação Marcada', dot: '#7c5cbf', col: '#a585e8', e: '📅' },
+          { id: 'confirmed', l: 'Confirmado', dot: '#2e8a5c', col: '#4fb884', e: '🔔' },
+          { id: 'appeared', l: 'Compareceu', dot: '#c27c2a', col: '#e8a855', e: '🏥' },
+          { id: 'closed', l: 'Fechou ✅', dot: '#2e7d32', col: '#4caf50', e: '🏆' },
+          { id: 'noshow', l: 'Não Veio ❌', dot: '#9e2e2e', col: '#e57373', e: '👻' },
+        ],
+        defaultStage: 'new',
+      },
+      tasks: {
+        filters: [
+          { id: 'all', l: 'Todas' },
+          { id: 'vitor', l: '👤 Vitor', c: 'fc' },
+          { id: 'gabriel', l: '👤 Gabriel', c: 'fm' },
+          { id: 'andre', l: '👤 André', c: 'fa' },
+        ],
+        stages: [
+          { id: 'todo', l: 'A Fazer', dot: '#9ca3af', col: '#e8eaf0', e: '📝' },
+          { id: 'doing', l: 'Em Andamento', dot: '#f59e0b', col: '#fcd34d', e: '⏳' },
+          { id: 'review', l: 'Revisão', dot: '#8b5cf6', col: '#c4b5fd', e: '👀' },
+          { id: 'done', l: 'Concluído ✅', dot: '#10b981', col: '#6ee7b7', e: '🚀' },
+        ],
+        defaultStage: 'todo',
+      },
+    };
+
+    /* ═══════════════ STATE ═══════════════ */
+    let leads = loadLocal() || [];
+    let pipe = 'sdr', filter = 'all', selId = null;
+    let _act = null, _prio = null, _mStage = null;
+    let sortables = [];
+
+    function loadLocal() { try { return JSON.parse(localStorage.getItem('promptx_leads')) || []; } catch { return []; } }
+    function saveLocal() { localStorage.setItem('promptx_leads', JSON.stringify(leads)); }
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+    function ts() { return new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+    function td() { return new Date().toLocaleDateString('pt-BR'); }
+
+    /* ═══════════════ API LAYER ═══════════════ */
+    const useAPI = () => typeof CONFIG !== 'undefined' && CONFIG.APPS_SCRIPT_URL && CONFIG.DATA_MODE === 'api';
+
+    function setSyncState(s) {
+      const dot = document.getElementById('syncDot');
+      const lbl = document.getElementById('syncLabel');
+      if (!dot) return;
+      dot.className = 'sync-dot ' + (s === 'online' ? 'online' : s === 'syncing' ? 'syncing' : '');
+      lbl.textContent = s === 'online' ? 'Sheets' : s === 'syncing' ? 'Sincronizando...' : 'Local';
+    }
+
+    async function apiCall(method, body) {
+      if (!useAPI()) return null;
+      setSyncState('syncing');
+      try {
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        let url = CONFIG.APPS_SCRIPT_URL;
+        if (method === 'GET') { url += body ? '?' + new URLSearchParams(body).toString() : ''; }
+        else { opts.body = JSON.stringify(body); }
+        const res = await fetch(url, opts);
+        const data = await res.json();
+        setSyncState('online');
+        return data;
+      } catch (e) {
+        setSyncState('');
+        return null;
+      }
+    }
+
+    async function loadLeads() {
+      if (useAPI()) {
+        const data = await apiCall('GET', { action: 'list' });
+        if (data && data.leads) { leads = data.leads; saveLocal(); }
+      }
+      render();
+    }
+
+    async function apiCreate(lead) {
+      if (useAPI()) await apiCall('POST', { action: 'create', data: lead });
+    }
+    async function apiUpdate(lead) {
+      if (useAPI()) await apiCall('POST', { action: 'update', data: lead });
+    }
+    async function apiDelete(id) {
+      if (useAPI()) await apiCall('POST', { action: 'delete', id });
+    }
+    async function apiSchedule(data) {
+      if (!useAPI()) return { error: 'API não configurada' };
+      return await apiCall('POST', { action: 'schedule', data });
+    }
+
+    /* ═══════════════ RENDER ═══════════════ */
+    function render() { renderFilters(); renderBoard(); renderStats(); }
+
+    function renderFilters() {
+      const p = PIPELINES[pipe];
+      document.getElementById('filterTabs').innerHTML = p.filters.map(f =>
+        `<button class="ftab ${f.c || ''} ${filter === f.id ? 'active' : ''}" onclick="setFilter('${f.id}',this)">${f.l}</button>`
+      ).join('');
+    }
+
+    function renderBoard() {
+      sortables.forEach(s => s.destroy()); sortables = [];
+      const p = PIPELINES[pipe];
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      p.stages.forEach(st => {
+        let sl = leads.filter(l => l.pipeline === pipe && l.stage === st.id);
+        if (pipe === 'tasks') {
+          if (filter !== 'all') sl = sl.filter(l => l.assignee === filter);
+        } else {
+          if (filter === 'call') sl = sl.filter(l => l.nextAction === 'call');
+          else if (filter === 'msg') sl = sl.filter(l => l.nextAction === 'msg');
+          else if (filter === 'hot') sl = sl.filter(l => l.priority === 'high');
+        }
+
+        const col = document.createElement('div');
+        col.className = 'col';
+        col.innerHTML = `
+      <div class="col-head">
+        <div class="col-title"><div class="col-dot" style="background:${st.dot}"></div><span style="color:${st.col}">${st.e} ${st.l}</span></div>
+        <span class="col-badge">${sl.length}</span>
+      </div>
+      <div class="col-body" id="cb-${st.id}" data-stage="${st.id}" data-pipeline="${pipe}">
+        ${sl.length === 0 ? `<div class="empty-col">${st.e}</div>` : ''}
+        ${sl.map(l => cardHTML(l)).join('')}
+        ${!['closed', 'lost', 'noshow', 'done'].includes(st.id) ? `<button class="add-btn" onclick="openModalStage('${st.id}')">+ ${pipe === 'tasks' ? 'Tarefa' : 'Lead'}</button>` : ''}
+      </div>`;
+        board.appendChild(col);
+
+        // Sortable drag-and-drop
+        const body = col.querySelector('.col-body');
+        const s = Sortable.create(body, {
+          group: 'leads', animation: 150, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
+          filter: '.add-btn,.empty-col',
+          onAdd(evt) {
+            const cardEl = evt.item;
+            const id = cardEl.getAttribute('data-id');
+            const newStage = evt.to.getAttribute('data-stage');
+            const lead = leads.find(l => l.id === id);
+
+            // Allow drag-and-drop only within the same pipeline
+            if (lead && lead.stage !== newStage && lead.pipeline === pipe) {
+              lead.stage = newStage;
+              lead.log = lead.log || [];
+              lead.log.push({ text: `Movido para: ${p.stages.find(s => s.id === newStage)?.l || newStage}`, time: ts() });
+              apiUpdate(lead); saveLocal();
+              renderBoard(); renderStats();
+              toast('Etapa atualizada ✓');
+            } else if (lead && lead.pipeline !== pipe) {
+              // Return to original if dragged to another pipeline (though group name usually prevents it, just a safeguard)
+              renderBoard();
+            }
+          },
+        });
+        sortables.push(s);
+      });
+    }
+
+    function cardHTML(l) {
+      if (l.pipeline === 'tasks') {
+        const pip = l.priority === 'high' ? 'ph' : l.priority === 'mid' ? 'pm' : '';
+        const assigneeColors = { 'vitor': '#3b82f6', 'gabriel': '#10b981', 'andre': '#f97316' };
+        const asColor = assigneeColors[l.assignee] || 'var(--muted)';
+        const asName = l.assignee ? (l.assignee.charAt(0).toUpperCase() + l.assignee.slice(1)) : 'Ninguém';
+        const assigneeBadge = `<span class="badge" style="background:${asColor}20; color:${asColor}; border:1px solid ${asColor}40">👤 ${asName}</span>`;
+        return `<div class="card${selId === l.id ? ' selected' : ''}" id="card-${l.id}" data-id="${l.id}" onclick="openLead('${l.id}')">
+      <div class="prio-pip ${pip}"></div>
+      <div class="card-top"><div><div class="card-name">${l.name || 'Nova Tarefa'}</div></div>${assigneeBadge}</div>
+      ${l.dueDate ? `<div class="card-city">📅 Prazo: ${l.dueDate.split('-').reverse().join('/')}</div>` : ''}
+      ${l.notes ? `<div class="card-note">📝 ${l.notes}</div>` : ''}
+    </div>`;
+      }
+
+      const ab = l.nextAction === 'call' ? `<span class="badge b-call">📞</span>` :
+        l.nextAction === 'msg' ? `<span class="badge b-msg">💬</span>` :
+          `<span class="badge b-wait">⏳</span>`;
+      const pip = l.priority === 'high' ? 'ph' : l.priority === 'mid' ? 'pm' : '';
+      const note = l.notes ? `<div class="card-note">📝 ${l.notes}</div>` : '';
+      const cal = l.calendarEventId ? `<div style="font-size:9px;color:var(--green);margin-top:4px">📅 Call agendada</div>` : '';
+      return `<div class="card${selId === l.id ? ' selected' : ''}" id="card-${l.id}" data-id="${l.id}" onclick="openLead('${l.id}')">
+    <div class="prio-pip ${pip}"></div>
+    <div class="card-top"><div><div class="card-name">${l.name || '—'}</div><div class="card-sub">${l.clinic || ''}</div></div>${ab}</div>
+    ${l.city ? `<div class="card-city">📍 ${l.city}</div>` : ''}
+    ${note}${cal}
+    ${l.lastContact ? `<div style="font-size:9px;color:var(--muted);margin-top:3px">↩ ${l.lastContact}</div>` : ''}
+  </div>`;
+    }
+
+    function renderStats() {
+      const all = leads.filter(l => l.pipeline === pipe);
+      if (pipe === 'tasks') {
+        const td = all.filter(l => l.stage === 'todo').length;
+        const dn = all.filter(l => l.stage === 'done').length;
+        document.getElementById('statsBar').innerHTML = `
+          <div class="stat">Total <b style="margin-left:3px">${all.length}</b></div>
+          <div class="stat" style="color:var(--dim)">📝 <b>${td}</b></div>
+          <div class="stat" style="color:var(--green)">🚀 <b>${dn}</b></div>`;
+        return;
+      }
+      const cl = all.filter(l => l.nextAction === 'call').length;
+      const ms = all.filter(l => l.nextAction === 'msg').length;
+      const cs = all.filter(l => l.stage === 'closed').length;
+      document.getElementById('statsBar').innerHTML = `
+    <div class="stat">Total <b style="margin-left:3px">${all.length}</b></div>
+    <div class="stat" style="color:var(--blue)">📞 <b>${cl}</b></div>
+    <div class="stat" style="color:var(--green)">💬 <b>${ms}</b></div>
+    <div class="stat" style="color:var(--green)">🏆 <b>${cs}</b></div>`;
+    }
+
+    /* ═══════════════ SIDEBAR ═══════════════ */
+    function openLead(id) {
+      selId = id; _act = null; _prio = null;
+      const l = leads.find(x => x.id === id); if (!l) return;
+      document.getElementById('sbTitle').textContent = l.name || (l.pipeline === 'tasks' ? 'Tarefa' : 'Lead');
+      document.getElementById('sbBody').innerHTML = buildForm(l);
+      // Set select values programmatically after DOM insertion (selected attribute is unreliable via innerHTML)
+      const stageEl = document.getElementById('fl_stage');
+      if (stageEl && l.stage) stageEl.value = l.stage;
+      if (l.pipeline === 'tasks') {
+        const assigneeEl = document.getElementById('fl_assignee');
+        if (assigneeEl) assigneeEl.value = l.assignee || '';
+      } else {
+        const actMap = { call: 'ac', msg: 'am', wait: 'aw' };
+        if (l.nextAction) {
+          document.querySelectorAll('#actTgg .tg').forEach(b => {
+            b.className = 'tg';
+            if (b.onclick && b.onclick.toString().includes(`'${l.nextAction}'`)) b.classList.add(actMap[l.nextAction] || '');
+          });
+        }
+      }
+      const sb = document.getElementById('sidebar');
+      sb.classList.remove('closed');
+      if (window.innerWidth <= 768) { sb.classList.add('open-m'); document.getElementById('sbOverlay').style.display = 'block'; }
+      render();
+    }
+
+
+    function buildForm(l) {
+      const p = PIPELINES[l.pipeline || 'sdr'];
+      const stOpts = p.stages.map(s => `<option value="${s.id}" ${l.stage === s.id ? 'selected' : ''}>${s.e} ${s.l}</option>`).join('');
+      const aRow = p.stages[0] && l.pipeline !== 'tasks' ? [{ v: 'call', lb: '📞 Ligar' }, { v: 'msg', lb: '💬 Msg' }, { v: 'wait', lb: '⏳ Aguardar' }].map(o =>
+        `<button class="tg ${l.nextAction === o.v ? 'a' + o.v.charAt(0) : ''}" onclick="setAct('${o.v}')">${o.lb}</button>`
+      ).join('') : [];
+      const logs = (l.log || []).slice().reverse().slice(0, 8).map(e =>
+        `<div class="log-item"><div class="log-d"></div><div><div class="log-txt">${e.text}</div><div class="log-time">${e.time}</div></div></div>`
+      ).join('') || '<div style="font-size:11px;color:var(--muted)">Sem registros.</div>';
+
+      if (l.pipeline === 'tasks') {
+        const assigneeVal = l.assignee || '';
+        return `
+  <div style="display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;border:1px solid #8b5cf630;background:#8b5cf615;color:#8b5cf6;font-size:10px;font-weight:800;margin-bottom:12px">☑️ Tarefa</div>
+  <div class="fld"><div class="fl">Título da Tarefa</div><input id="fl_name" value="${(l.name || '').replace(/"/g, '&quot;')}" /></div>
+  <div class="frow" style="margin-top:8px">
+    <div class="fld"><div class="fl">Responsável</div>
+      <select id="fl_assignee" onchange="">
+        <option value="">Sem responsável</option>
+        <option value="vitor">👤 Vitor</option>
+        <option value="gabriel">👤 Gabriel</option>
+        <option value="andre">👤 André</option>
+      </select>
+    </div>
+    <div class="fld"><div class="fl">Status</div><select id="fl_stage">${stOpts}</select></div>
+  </div>
+  <div class="fld" style="margin-top:8px"><div class="fl">Prazo (Data)</div><input id="fl_ndate" type="date" value="${l.dueDate || ''}" /></div>
+  <div class="div"></div>
+  <div class="slabel">Prioridade</div>
+  <div class="tgg" id="prioTgg">
+    <button class="tg ${l.priority === 'high' ? 'ah' : ''}" onclick="setPrio('high')">&#128308; Alta</button>
+    <button class="tg ${l.priority === 'mid' ? 'amm' : ''}" onclick="setPrio('mid')">&#128993; Média</button>
+    <button class="tg ${!l.priority || l.priority === 'low' ? 'al' : ''}" onclick="setPrio('low')">&#9898; Baixa</button>
+  </div>
+  <div class="div"></div>
+  <div class="slabel">Descrição / Tarefas</div>
+  <div class="fld"><textarea id="fl_notes" placeholder="Detalhes do que fazer..." style="min-height:100px">${l.notes || ''}</textarea></div>
+  <div class="div"></div>
+  <div class="slabel">Histórico</div>
+  <div class="log-wrap" id="logWrap">${logs}</div>
+  <div class="log-form"><input class="log-inp" id="logInp" placeholder="Comentário..." onkeypress="if(event.key==='Enter')addLog()" /><button class="log-sub" onclick="addLog()">+</button></div>
+  <script>document.addEventListener('DOMContentLoaded',function(){}); (function(){ var s=document.getElementById('fl_assignee'); if(s) s.value='${assigneeVal}'; })();</scr` + `ipt>`;
+      }
+
+      const pc = l.pipeline === 'traffic' ? 'var(--orange)' : 'var(--accent)';
+      const pb = l.pipeline === 'traffic' ? '📣 Tráfego' : '🎯 SDR';
+      const calBadge = l.calendarEventId ? `<div style="margin-top:4px;font-size:10px;color:var(--green)">📅 Call agendada no Google Calendar</div>` : '';
+
+      return `
+  <div style="display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;border:1px solid ${pc}30;background:${pc}15;color:${pc};font-size:10px;font-weight:800;margin-bottom:12px">${pb}</div>
+  ${calBadge}
+  <div class="frow"><div class="fld"><div class="fl">Nome</div><input id="fl_name" value="${l.name || ''}" /></div><div class="fld"><div class="fl">Cidade</div><input id="fl_city" value="${l.city || ''}" /></div></div>
+  <div class="fld" style="margin-top:8px"><div class="fl">Clínica</div><input id="fl_clinic" value="${l.clinic || ''}" /></div>
+  <div class="frow" style="margin-top:8px"><div class="fld"><div class="fl">WhatsApp</div><input id="fl_phone" value="${l.phone || ''}" /></div><div class="fld"><div class="fl">Instagram</div><input id="fl_ig" value="${l.ig || ''}" /></div></div>
+  <div class="fld" style="margin-top:8px"><div class="fl">Etapa</div><select id="fl_stage">${stOpts}</select></div>
+  <div class="div"></div>
+  <div class="slabel">Próxima Ação</div>
+  <div class="tgg" id="actTgg">${Array.isArray(aRow) ? aRow.join('') : aRow}</div>
+  <div class="fld" style="margin-top:8px"><div class="fl">Data do Próximo Contato</div><input id="fl_ndate" type="date" value="${l.nextDate || ''}" /></div>
+  <div class="div"></div>
+  <div class="slabel">Prioridade</div>
+  <div class="tgg" id="prioTgg">
+    <button class="tg ${l.priority === 'high' ? 'ah' : ''}" onclick="setPrio('high')">🔴 Alta</button>
+    <button class="tg ${l.priority === 'mid' ? 'amm' : ''}" onclick="setPrio('mid')">🟡 Média</button>
+    <button class="tg ${!l.priority || l.priority === 'low' ? 'al' : ''}" onclick="setPrio('low')">⚪ Baixa</button>
+  </div>
+  <div class="div"></div>
+  <div class="slabel">O Que Esse Lead Precisa Para Fechar</div>
+  <div class="fld"><textarea id="fl_notes" placeholder="Ex: Quer ver demonstração. Sócia precisa aprovar...">${l.notes || ''}</textarea></div>
+  ${l.pipeline === 'traffic' ? `
+  <div class="div"></div><div class="slabel">Dados do Tráfego</div>
+  <div class="frow"><div class="fld"><div class="fl">Campanha</div><input id="fl_camp" value="${l.campaign || ''}" placeholder="Meta Ads" /></div><div class="fld"><div class="fl">Serviço</div><input id="fl_svc" value="${l.service || ''}" placeholder="Botox" /></div></div>` : ''}
+  <div class="div"></div>
+  <div class="slabel">Histórico</div>
+  <div class="log-wrap" id="logWrap">${logs}</div>
+  <div class="log-form"><input class="log-inp" id="logInp" placeholder="Registrar ação..." onkeypress="if(event.key==='Enter')addLog()" /><button class="log-sub" onclick="addLog()">+</button></div>`;
+    }
+
+    function setAct(v) {
+      _act = v;
+      document.querySelectorAll('#actTgg .tg').forEach(b => { b.className = 'tg'; if (b.onclick.toString().includes(`'${v}'`)) b.classList.add('a' + v.charAt(0)); });
+    }
+    function setPrio(v) {
+      _prio = v;
+      document.querySelectorAll('#prioTgg .tg').forEach(b => { b.className = 'tg'; if (b.onclick.toString().includes(`'${v}'`)) b.classList.add(v === 'high' ? 'ah' : v === 'mid' ? 'amm' : 'al'); });
+    }
+    function addLog() {
+      const l = leads.find(x => x.id === selId); const inp = document.getElementById('logInp');
+      const txt = inp?.value?.trim(); if (!l || !txt) return;
+      l.log = l.log || []; l.log.push({ text: txt, time: ts() }); l.lastContact = td();
+      apiUpdate(l); saveLocal(); inp.value = '';
+      const w = document.getElementById('logWrap');
+      if (w) w.innerHTML = `<div class="log-item"><div class="log-d"></div><div><div class="log-txt">${txt}</div><div class="log-time">${ts()}</div></div></div>` + w.innerHTML;
+      toast('Registrado ✓');
+    }
+    function saveLead() {
+      const l = leads.find(x => x.id === selId); if (!l) return;
+      if (l.pipeline === 'tasks') {
+        l.name = document.getElementById('fl_name')?.value?.trim() || l.name;
+        l.assignee = document.getElementById('fl_assignee')?.value || '';
+        l.stage = document.getElementById('fl_stage')?.value || l.stage;
+        l.dueDate = document.getElementById('fl_ndate')?.value || '';
+        l.notes = document.getElementById('fl_notes')?.value?.trim() || '';
+      } else {
+        l.name = document.getElementById('fl_name')?.value?.trim() || l.name;
+        l.city = document.getElementById('fl_city')?.value?.trim() || '';
+        l.clinic = document.getElementById('fl_clinic')?.value?.trim() || '';
+        l.phone = document.getElementById('fl_phone')?.value?.trim() || '';
+        l.ig = document.getElementById('fl_ig')?.value?.trim() || '';
+        l.stage = document.getElementById('fl_stage')?.value || l.stage;
+        l.nextDate = document.getElementById('fl_ndate')?.value || '';
+        l.notes = document.getElementById('fl_notes')?.value?.trim() || '';
+        if (l.pipeline === 'traffic') { l.campaign = document.getElementById('fl_camp')?.value?.trim() || ''; l.service = document.getElementById('fl_svc')?.value?.trim() || ''; }
+        if (_act !== null) { l.nextAction = _act; _act = null; }
+      }
+      if (_prio !== null) { l.priority = _prio; _prio = null; }
+      document.getElementById('sbTitle').textContent = l.name || (l.pipeline === 'tasks' ? 'Tarefa' : 'Lead');
+      apiUpdate(l); saveLocal(); render(); toast('Salvo ✓');
+    }
+    async function deleteLead() {
+      if (!confirm('Excluir lead?')) return;
+      await apiDelete(selId); leads = leads.filter(x => x.id !== selId); saveLocal(); closeSidebar(); render(); toast('Excluído');
+    }
+    function closeSidebar() {
+      selId = null; _act = null; _prio = null;
+      const sb = document.getElementById('sidebar'); sb.classList.add('closed'); sb.classList.remove('open-m');
+      document.getElementById('sbOverlay').style.display = 'none'; render();
+    }
+
+    /* ═══════════════ CALENDAR MODAL ═══════════════ */
+    function openCalModal() {
+      const l = leads.find(x => x.id === selId); if (!l) return;
+      const d = new Date(); d.setDate(d.getDate() + 1);
+      document.getElementById('cal_title').value = `Call PromptX — ${l.name}${l.clinic ? ' | ' + l.clinic : ''}`;
+      document.getElementById('cal_date').value = d.toISOString().split('T')[0];
+      document.getElementById('cal_meet').value = '';
+      document.getElementById('cal_email').value = '';
+      document.getElementById('cal_notes').value = l.notes || '';
+      document.getElementById('calResult').style.display = 'none';
+      document.getElementById('calSubmitBtn').textContent = '📅 Criar Evento';
+      document.getElementById('calOverlay').classList.add('open');
+    }
+    function closeCalModal() { document.getElementById('calOverlay').classList.remove('open'); }
+
+    async function scheduleCall() {
+      const l = leads.find(x => x.id === selId); if (!l) return;
+      const date = document.getElementById('cal_date').value;
+      const time = document.getElementById('cal_time').value;
+      if (!date || !time) { toast('Informe data e horário'); return; }
+
+      const btn = document.getElementById('calSubmitBtn');
+      btn.textContent = 'Conectando...'; btn.disabled = true;
+
+      const dur = parseInt(document.getElementById('cal_dur').value) || 45;
+      const startDT = new Date(`${date}T${time}:00`);
+      const endDT = new Date(startDT.getTime() + dur * 60000);
+
+      const eventData = {
+        title: document.getElementById('cal_title').value || `Call PromptX — ${l.name}`,
+        startDateTime: startDT.toISOString(),
+        endDateTime: endDT.toISOString(),
+        location: document.getElementById('cal_meet').value.trim(),
+        guestEmail: document.getElementById('cal_email').value.trim(),
+        description: [
+          `Lead: ${l.name}`,
+          l.clinic ? `Clínica: ${l.clinic}` : '',
+          document.getElementById('cal_notes').value.trim(),
+          '\nCriado pelo PromptX CRM'
+        ].filter(Boolean).join('\n'),
+      };
+
+      try {
+        let res;
+        if (CalendarAPI.isConfigured()) {
+          btn.textContent = 'Autenticando...';
+          res = await CalendarAPI.createEvent(eventData);
+        } else {
+          res = CalendarAPI.openCalendarFallback(eventData);
+        }
+
+        btn.textContent = '📅 Criar Evento'; btn.disabled = false;
+
+        if (res.fallback) {
+          // fallback: Google Calendar abriu em nova aba
+          l.stage = 'call'; l.nextAction = 'call';
+          saveLocal(); render(); closeCalModal();
+          toast('Google Calendar aberto ✓');
+        } else if (res.success) {
+          const r = document.getElementById('calResult');
+          r.style.display = 'block';
+          r.innerHTML = `✅ Evento criado! <a href="${res.eventLink}" target="_blank" style="color:var(--green)">Abrir no Calendar</a>${res.meetLink ? ` | <a href="${res.meetLink}" target="_blank" style="color:var(--blue)">Link Meet</a>` : ''}`;
+          l.calendarEventId = res.eventId; l.stage = 'call'; l.nextAction = 'call';
+          if (useAPI()) apiUpdate(l);
+          saveLocal(); render();
+          toast('Call agendada no Google Calendar ✓');
+        }
+      } catch (err) {
+        btn.textContent = '📅 Criar Evento'; btn.disabled = false;
+        toast('Erro: ' + err.message);
+        console.error(err);
+      }
+    }
+
+    /* ═══════════════ PIPELINE / FILTER ═══════════════ */
+    function switchPipeline(p, el) {
+      pipe = p; filter = 'all'; selId = null;
+      document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active')); el.classList.add('active');
+      const sb = document.getElementById('sidebar'); sb.classList.add('closed'); sb.classList.remove('open-m');
+      const btnAdd = document.getElementById('btnMainAdd');
+      const fab = document.getElementById('fabAdd');
+      const label = pipe === 'tasks' ? '+ Tarefa' : '+ Lead';
+      if (btnAdd) btnAdd.textContent = label;
+      if (fab) fab.title = label;
+      // Hide chat view, show board
+      document.getElementById('chatView').classList.remove('active');
+      document.getElementById('boardWrap').style.display = '';
+      render();
+    }
+    function setFilter(f, el) {
+      filter = f; document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active')); el.classList.add('active'); render();
+    }
+
+    /* ═══════════════ MODAL LEAD ═══════════════ */
+    function openModal() { openModalStage(PIPELINES[pipe].defaultStage); }
+    function openModalStage(stage) {
+      _mStage = stage;
+      const p = PIPELINES[pipe];
+      document.getElementById('modalTitle').textContent = pipe === 'tasks' ? '➕ Nova Tarefa' : `➕ Novo Lead — ${pipe === 'traffic' ? '📣 Tráfego' : '🎯 SDR'}`;
+      document.getElementById('m_stage').innerHTML = p.stages.map(s => `<option value="${s.id}" ${s.id === stage ? 'selected' : ''}>${s.e} ${s.l}</option>`).join('');
+      if (pipe === 'tasks') {
+        document.getElementById('modalFieldsLeads').style.display = 'none';
+        document.getElementById('modalFieldsTasks').style.display = 'block';
+        document.getElementById('m_task_name').value = '';
+        document.getElementById('m_task_assignee').value = '';
+        document.getElementById('btnModalCreate').textContent = 'Criar Tarefa';
+      } else {
+        document.getElementById('modalFieldsLeads').style.display = 'block';
+        document.getElementById('modalFieldsTasks').style.display = 'none';
+        ['m_name', 'm_city', 'm_clinic', 'm_phone'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        document.getElementById('btnModalCreate').textContent = 'Criar Lead';
+      }
+      document.getElementById('overlay').classList.add('open');
+      setTimeout(() => {
+        const input = document.getElementById(pipe === 'tasks' ? 'm_task_name' : 'm_name');
+        if (input) input.focus();
+      }, 80);
+    }
+    function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+    async function createLead() {
+      let l;
+      if (pipe === 'tasks') {
+        const name = document.getElementById('m_task_name').value.trim();
+        if (!name) { document.getElementById('m_task_name').focus(); return; }
+        l = {
+          id: uid(), pipeline: pipe, name,
+          assignee: document.getElementById('m_task_assignee').value,
+          stage: document.getElementById('m_stage').value,
+          priority: 'mid', notes: '', dueDate: '',
+          log: [{ text: 'Tarefa criada', time: ts() }], createdAt: td(), lastContact: td(),
+        };
+      } else {
+        const name = document.getElementById('m_name').value.trim();
+        if (!name) { document.getElementById('m_name').focus(); return; }
+        l = {
+          id: uid(), pipeline: pipe, name,
+          city: document.getElementById('m_city').value.trim(),
+          clinic: document.getElementById('m_clinic').value.trim(),
+          phone: document.getElementById('m_phone').value.trim(),
+          stage: document.getElementById('m_stage').value,
+          nextAction: 'wait', priority: 'mid', notes: '',
+          log: [{ text: 'Lead criado', time: ts() }], createdAt: td(), lastContact: td(),
+        };
+      }
+      leads.push(l); await apiCreate(l); saveLocal(); closeModal(); render(); openLead(l.id); toast(pipe === 'tasks' ? 'Tarefa criada ✓' : 'Lead criado ✓');
+    }
+
+    document.getElementById('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('calOverlay').addEventListener('click', e => { if (e.target.id === 'calOverlay') closeCalModal(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeModal(); closeCalModal(); closeSidebar(); }
+      if (e.key === 'n' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) openModal();
+    });
+
+    /* ═══════════════ TOAST ═══════════════ */
+    function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+
+    /* ═══════════════ SEED ═══════════════ */
+    if (!leads.length) {
+      leads = [
+        { id: uid(), pipeline: 'sdr', name: 'Dra. Camila Torres', clinic: 'Clínica Bella Forma', city: 'Goiânia', phone: '(62) 9 9911-1234', ig: '@bellaforma', stage: 'contact', nextAction: 'msg', priority: 'high', notes: 'Investe R$3k/mês em tráfego. Quer ver demonstração.', log: [{ text: 'Lead criado', time: '25/02 10:00' }, { text: 'Versão A enviada. Respondeu com interesse.', time: '25/02 14:30' }], createdAt: '25/02/2026', lastContact: '25/02/2026' },
+        { id: uid(), pipeline: 'sdr', name: 'Dr. Rafael Souza', clinic: 'Studio Estética RS', city: 'Anápolis', phone: '(62) 9 8822-9988', stage: 'cold', nextAction: 'call', priority: 'mid', notes: 'Perfil ativo no Instagram.', log: [{ text: 'Lead criado', time: '25/02 09:00' }], createdAt: '25/02/2026', lastContact: '' },
+        { id: uid(), pipeline: 'sdr', name: 'Ana Paula Neves', clinic: 'Harmonia Clinic', city: 'Brasília', phone: '(61) 9 7733-4455', ig: '@harmoniaclinic', stage: 'qualify', nextAction: 'msg', priority: 'high', notes: 'Perde lead à noite e fim de semana. Objeção: parece robô.', log: [{ text: 'Lead criado', time: '24/02 08:00' }, { text: 'Qualificando — confirma tráfego ativo.', time: '25/02 09:30' }], createdAt: '24/02/2026', lastContact: '25/02/2026' },
+        { id: uid(), pipeline: 'sdr', name: 'Dra. Mariana Luz', clinic: 'ML Estética Avançada', city: 'São Paulo', phone: '(11) 9 9900-1122', stage: 'call', nextAction: 'call', priority: 'high', notes: 'Call marcada sexta 14h. Sócia precisa aprovar.', log: [{ text: 'CALL AGENDADA — Sexta 14h', time: '25/02 11:30' }], createdAt: '22/02/2026', lastContact: '25/02/2026' },
+        { id: uid(), pipeline: 'traffic', name: 'Priscila Mendes', clinic: 'Espaço D\'Or', city: 'Goiânia', phone: '(62) 9 9123-4567', stage: 'new', nextAction: 'msg', priority: 'high', campaign: 'Meta Ads', service: 'Harmonização', notes: 'Lead chegou há 10 min. Ainda não respondida.', log: [{ text: 'Lead chegou via Meta Ads', time: '25/02 20:45' }], createdAt: '25/02/2026', lastContact: '25/02/2026' },
+        { id: uid(), pipeline: 'traffic', name: 'Fernanda Costa', clinic: '', city: 'Aparecida de Goiânia', phone: '(62) 9 8800-1122', stage: 'qualified', nextAction: 'call', priority: 'high', campaign: 'Meta Ads', service: 'Botox', notes: 'IA qualificou. Pronta para agendar avaliação.', log: [{ text: 'Lead chegou do tráfego', time: '24/02 19:00' }, { text: 'IA qualificou com sucesso', time: '24/02 19:02' }], createdAt: '24/02/2026', lastContact: '25/02/2026' },
+        { id: uid(), pipeline: 'traffic', name: 'Juliana Rocha', clinic: '', city: 'Goiânia', phone: '(62) 9 9900-3344', stage: 'scheduled', nextAction: 'wait', priority: 'mid', campaign: 'Google Ads', service: 'Lipo LAD', notes: 'Avaliação marcada para quinta às 10h.', log: [{ text: 'IA agendou avaliação — Quinta 10h', time: '23/02 15:05' }], createdAt: '23/02/2026', lastContact: '23/02/2026' },
+        { id: uid(), pipeline: 'tasks', name: 'Fazer copy pra estático e 1 reels', assignee: 'vitor', dueDate: '2026-03-05', stage: 'todo', priority: 'high', notes: 'Criar textos persuasivos para campanhas.', log: [{ text: 'Tarefa criada', time: '28/02 09:00' }], createdAt: '28/02/2026' },
+        { id: uid(), pipeline: 'tasks', name: 'Fazer agente no Helena para atendimento SDR', assignee: 'gabriel', dueDate: '2026-03-10', stage: 'todo', priority: 'high', notes: 'Configurar automação e prompt do agente SDR.', log: [{ text: 'Tarefa criada', time: '28/02 09:00' }], createdAt: '28/02/2026' }
+      ];
+      saveLocal();
+    }
+
+    /* ══════════════════ AUTH ══════════════════ */
+    const AUTH_KEY = 'promptx_auth';
+    let currentUser = null;
+
+    // Inicia após o DOM estar 100% carregado (loginPage fica após esta tag)
+    window.addEventListener('DOMContentLoaded', function () {
+      setSyncState(useAPI() ? 'online' : '');
+      checkAuth();
+    });
+
+    async function hashPw(password) {
+      const enc = new TextEncoder();
+      const buf = await crypto.subtle.digest('SHA-256', enc.encode(password));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function checkAuth() {
+      const stored = localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY);
+      if (stored) {
+        try {
+          currentUser = JSON.parse(stored);
+          showCRM();
+        } catch { showLogin(); }
+      } else {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('mainUI').style.display = 'none';
+      setTimeout(() => document.getElementById('l_user').focus(), 100);
+    }
+
+    function showCRM() {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainUI').style.display = 'flex';
+      // atualiza chip do usuário
+      const chip = document.getElementById('userChip');
+      const lb = document.getElementById('logoutBtn');
+      if (currentUser && chip) {
+        chip.style.display = 'flex';
+        chip.innerHTML = `👤 <span>${currentUser.name || currentUser.username}</span><span class="role">${currentUser.role === 'admin' ? '★ admin' : 'viewer'}</span>`;
+      }
+      if (lb) lb.style.display = 'block';
+      setSyncState(useAPI() ? 'online' : '');
+      loadLeads();
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('l_user').value.trim().toLowerCase();
+      const password = document.getElementById('l_pass').value;
+      const err = document.getElementById('l_err');
+      const btn = document.getElementById('l_btn');
+      err.style.display = 'none';
+      if (!username || !password) { err.textContent = 'Preencha usuário e senha'; err.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'Entrando...';
+      const pwHash = await hashPw(password);
+
+      // Usuários locais — fallback sempre disponível
+      const LOCAL_USERS = {
+        'vitor': { hash: await hashPw('Vitor1000@'), data: { success: true, username: 'vitor', role: 'admin', name: 'Vitor' } },
+        'gabriel': { hash: await hashPw('Gabriel123'), data: { success: true, username: 'gabriel', role: 'admin', name: 'Gabriel' } },
+        'andre': { hash: await hashPw('Andre123'), data: { success: true, username: 'andre', role: 'admin', name: 'André' } },
+      };
+
+      let user = null;
+      const isFileProtocol = window.location.protocol === 'file:';
+
+      // Tenta API apenas se não for file:// e API estiver configurada
+      if (useAPI() && !isFileProtocol) {
+        try {
+          const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', username, passwordHash: pwHash })
+          });
+          const data = await res.json();
+          if (data && data.success) { user = data; }
+        } catch (e) {
+          // API indisponível — cai no fallback local abaixo
+        }
+      }
+
+      // Fallback local (sempre funciona)
+      if (!user) {
+        const lu = LOCAL_USERS[username];
+        if (lu && lu.hash === pwHash) {
+          user = lu.data;
+        }
+      }
+
+      if (!user) {
+        err.textContent = 'Usuário ou senha incorretos';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Entrar';
+        return;
+      }
+
+      currentUser = user;
+      const storage = document.getElementById('l_rem').checked ? localStorage : sessionStorage;
+      storage.setItem(AUTH_KEY, JSON.stringify(user));
+      btn.disabled = false; btn.textContent = 'Entrar';
+      showCRM();
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem(AUTH_KEY);
+      closeSidebar();
+      showLogin();
+    }
+
+    /* ═══════════════ CHAT / CONVERSAS ═══════════════ */
+    // Z-API config (usa as mesmas credenciais do workflow)
+    const ZAPI = {
+      instance: '3EFAF7CBC4A93154DAE19A95FA8C442C',
+      token: 'F21AA9BABAB2B9E8160B8BC2',
+      clientToken: 'F482e7f15fadb4042a6047ab2e70cc69aS',
+    };
+    const ZAPI_BASE = `https://api.z-api.io/instances/${ZAPI.instance}/token/${ZAPI.token}`;
+    const ZAPI_HEADERS = {
+      'Content-Type': 'application/json',
+      'Client-Token': ZAPI.clientToken,
+    };
+
+    let chatState = { leadId: null, aiEnabled: true, phone: null, polling: null };
+
+    function switchToChat(el) {
+      document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      // Hide board, show chat
+      document.getElementById('boardWrap').style.display = 'none';
+      document.getElementById('sidebar').classList.add('closed');
+      document.getElementById('chatView').classList.add('active');
+      renderChatLeads();
+    }
+
+    function renderChatLeads() {
+      const leadsWithPhone = leads
+        .filter(l => l.phone && l.phone.trim() && l.pipeline !== 'tasks')
+        .sort((a, b) => (b.lastContact || '').localeCompare(a.lastContact || ''));
+
+      const list = document.getElementById('chatLeadList');
+      if (!leadsWithPhone.length) {
+        list.innerHTML = '<div class="chat-loading">Nenhum lead com WhatsApp cadastrado.</div>';
+        return;
+      }
+      list.innerHTML = leadsWithPhone.map(l => {
+        const aiOn = l.aiEnabled !== false && l.aiEnabled !== 'false';
+        const badge = aiOn
+          ? '<span class="chat-lead-badge badge-ai-on">🤖 IA Ativa</span>'
+          : '<span class="chat-lead-badge badge-ai-off">👤 Manual</span>';
+        return `<div class="chat-lead-item ${chatState.leadId === l.id ? 'active' : ''}" onclick="openChat('${l.id}')">
+          <div class="chat-lead-name">${l.name || '—'}</div>
+          <div class="chat-lead-phone">${l.phone || ''}</div>
+          ${badge}
+        </div>`;
+      }).join('');
+    }
+
+    async function openChat(leadId) {
+      const l = leads.find(x => x.id === leadId); if (!l) return;
+      chatState.leadId = leadId;
+      chatState.phone = (l.phone || '').replace(/\D/g, '');
+      chatState.aiEnabled = l.aiEnabled !== false && l.aiEnabled !== 'false';
+
+      // Update UI
+      document.getElementById('chatLeadName').textContent = l.name || '—';
+      document.getElementById('chatLeadPhone').textContent = l.phone || '—';
+      document.getElementById('chatEmpty').style.display = 'none';
+      document.getElementById('chatConvo').style.display = 'flex';
+      updateAIToggleUI(chatState.aiEnabled);
+      renderChatLeads();
+
+      // Load messages
+      await loadChatMessages();
+
+      // Start polling every 5s
+      if (chatState.polling) clearInterval(chatState.polling);
+      chatState.polling = setInterval(loadChatMessages, 5000);
+    }
+
+    function updateAIToggleUI(enabled) {
+      const btn = document.getElementById('aiToggleBtn');
+      const lbl = document.getElementById('aiToggleLabel');
+      btn.className = 'ai-toggle-btn ' + (enabled ? 'on' : 'off');
+      lbl.textContent = enabled ? '🤖 IA Ativa' : '👤 Manual';
+    }
+
+    async function loadChatMessages() {
+      if (!chatState.phone) return;
+      const msgs = document.getElementById('chatMsgs');
+
+      try {
+        // Try Apps Script stored messages first
+        if (useAPI()) {
+          const url = CONFIG.APPS_SCRIPT_URL + '?action=automation_messages&phone=' + chatState.phone;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.messages && data.messages.length > 0) {
+            renderMessages(data.messages);
+            return;
+          }
+        }
+      } catch (e) { }
+
+      // Fallback: show placeholder if no messages yet
+      if (!msgs.querySelector('.chat-msg')) {
+        msgs.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">
+          💬 Nenhuma mensagem ainda.<br>
+          <span style="font-size:10px">As mensagens aparecem aqui quando o lead respônder no WhatsApp.</span></div>`;
+      }
+    }
+
+    function renderMessages(messages) {
+      const msgs = document.getElementById('chatMsgs');
+      const wasAtBottom = msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 40;
+      msgs.innerHTML = messages.map(m => {
+        const isAI = m.role === 'assistant';
+        const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+        return `<div class="chat-msg ${m.role}">
+          ${m.content}
+          <div class="chat-msg-time">${isAI ? '🤖 IA • ' : '👤 Lead • '}${time}</div>
+        </div>`;
+      }).join('');
+      if (wasAtBottom) msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    async function toggleAI() {
+      if (!chatState.leadId) return;
+      const l = leads.find(x => x.id === chatState.leadId); if (!l) return;
+      const newState = !chatState.aiEnabled;
+
+      // Optimistic UI update
+      chatState.aiEnabled = newState;
+      l.aiEnabled = newState;
+      updateAIToggleUI(newState);
+      renderChatLeads();
+      toast(newState ? '🤖 IA ativada' : '👤 Modo manual ativado');
+
+      // Persist to Apps Script
+      if (useAPI()) {
+        try {
+          await fetch(CONFIG.APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'webhook_toggle_ai',
+              phone: chatState.phone,
+              aiEnabled: newState,
+            })
+          });
+        } catch (e) { toast('Aviso: falha ao salvar no servidor'); }
+      }
+      // Also update local
+      saveLocal();
+    }
+
+    async function sendManualMsg() {
+      const input = document.getElementById('chatInput');
+      const msg = input.value.trim(); if (!msg) return;
+      if (!chatState.phone) { toast('Selecione um lead primeiro'); return; }
+
+      input.value = '';
+
+      try {
+        // Send via Z-API
+        const res = await fetch(`${ZAPI_BASE}/send-text`, {
+          method: 'POST',
+          headers: ZAPI_HEADERS,
+          body: JSON.stringify({ phone: chatState.phone, message: msg }),
+        });
+        if (!res.ok) throw new Error('Z-API error ' + res.status);
+
+        // Save to Apps Script as 'assistant' message (sent by human manually)
+        if (useAPI()) {
+          await fetch(CONFIG.APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'webhook_save_message',
+              phone: chatState.phone,
+              role: 'assistant',
+              content: msg,
+            })
+          });
+        }
+
+        // Immediately render new message in UI
+        const msgs = document.getElementById('chatMsgs');
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-msg assistant';
+        const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        bubble.innerHTML = `${msg}<div class="chat-msg-time">👤 Manual • ${now}</div>`;
+        msgs.appendChild(bubble);
+        msgs.scrollTop = msgs.scrollHeight;
+
+        toast('Mensagem enviada ✓');
+      } catch (e) {
+        input.value = msg; // restore on error
+        toast('Erro ao enviar: ' + e.message);
+      }
+    }
+  </script>
+
+  <!-- ══ LOGIN PAGE ══ -->
+  <div id="loginPage" style="display:none">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-icon">🎯</div>
+        <div>
+          <div class="login-brand">PromptX</div>
+          <div class="login-sub">CRM — Acesso Restrito</div>
+        </div>
+      </div>
+      <div class="fld">
+        <div class="fl">Usuário</div>
+        <div class="login-inp-wrap"><input id="l_user" placeholder="seu usuário" autocomplete="username"
+            onkeypress="if(event.key==='Enter')document.getElementById('l_pass').focus()" /></div>
+      </div>
+      <div class="fld" style="margin-top:12px">
+        <div class="fl">Senha</div>
+        <div class="login-inp-wrap">
+          <input id="l_pass" type="password" placeholder="••••••••" autocomplete="current-password"
+            onkeypress="if(event.key==='Enter')doLogin()" />
+          <button class="login-eye"
+            onclick="const i=document.getElementById('l_pass');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈'">👁</button>
+        </div>
+      </div>
+      <div id="l_err" class="login-err"></div>
+      <button id="l_btn" class="login-btn" onclick="doLogin()">Entrar</button>
+      <label class="login-remember"><input type="checkbox" id="l_rem" /> Lembrar neste dispositivo</label>
+      <div class="login-footer">PromptX CRM &copy; 2026 — Acesso restrito</div>
+    </div>
+  </div>
+</body>
+
+</html>
