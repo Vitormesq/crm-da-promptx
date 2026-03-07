@@ -1,5 +1,5 @@
 {
-    "name": "SDR PromptX — Agente WhatsApp v2",
+    "name": "SDR PromptX \u2014 Agente WhatsApp v2",
     "nodes": [
         {
             "parameters": {
@@ -34,10 +34,10 @@
         },
         {
             "parameters": {
-                "jsCode": "// Extrai dados da mensagem Z-API\nconst body = $input.first().json.body || $input.first().json;\n\n// Ignora mensagens enviadas por mim\nif (body.fromMe === true) return [];\n\n// Ignora grupos\nif (body.isGroupMsg === true) return [];\n\n// Extrai campos principais\nconst phone   = String(body.phone || body.from || '').replace(/\\D/g, '');\nconst message = body.message?.conversation\n  || body.text?.message\n  || body.message?.extendedTextMessage?.text\n  || '';\nconst name    = body.senderName || body.pushName || 'Lead';\n\nif (!phone || !message.trim()) return [];\n\nreturn [{ json: { phone, message: message.trim(), name } }];"
+                "jsCode": "// Extrai dados da mensagem Evolution API (MESSAGES_UPSERT)\nconst body = $input.first().json.body || $input.first().json;\n\n// Garante que \u00e9 um evento de mensagem\nif (body.event !== 'messages.upsert') return [];\nconst msg = body.data?.messages?.[0] || body.data;\nif (!msg) return [];\n\n// Ignora mensagens enviadas por n\u00f3s mesmos (evita loop)\nif (msg.key?.fromMe) return [];\n\n// Ignora grupos\nif (msg.key?.remoteJid?.includes('@g.us')) return [];\n\n// Extrai campos principais\nconst phone = String(msg.key?.remoteJid || '').replace(/\\D/g, '');\nconst message = msg.message?.conversation \n  || msg.message?.extendedTextMessage?.text \n  || '';\nconst name = msg.pushName || 'Lead';\n\nif (!phone || !message.trim()) return [];\n\nreturn [{ json: { phone, message: message.trim(), name } }];"
             },
             "id": "node-003",
-            "name": "Extrair Dados Z-API",
+            "name": "Extrair Dados Evolution",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
@@ -47,10 +47,10 @@
         },
         {
             "parameters": {
-                "jsCode": "// Carrega e salva histórico de conversa por telefone (memória local)\nconst staticData = $getWorkflowStaticData('global');\nconst phone      = $input.first().json.phone;\nconst message    = $input.first().json.message;\nconst name       = $input.first().json.name;\n\nconst key     = 'hist_' + phone;\nconst history = staticData[key] || [];\n\n// Adiciona mensagem do lead\nhistory.push({ role: 'user', content: `[${name}]: ${message}` });\n\n// Limita a 20 mensagens (10 trocas)\nif (history.length > 20) history.splice(0, history.length - 20);\n\nstaticData[key] = history;\n\nreturn [{ json: { phone, name, message, history, historyKey: key } }];"
+                "jsCode": "// Carrega e salva hist\u00f3rico de conversa por telefone (mem\u00f3ria local)\nconst staticData = $getWorkflowStaticData('global');\nconst phone      = $input.first().json.phone;\nconst message    = $input.first().json.message;\nconst name       = $input.first().json.name;\n\nconst key     = 'hist_' + phone;\nconst history = staticData[key] || [];\n\n// Adiciona mensagem do lead\nhistory.push({ role: 'user', content: `[${name}]: ${message}` });\n\n// Limita a 20 mensagens (10 trocas)\nif (history.length > 20) history.splice(0, history.length - 20);\n\nstaticData[key] = history;\n\nreturn [{ json: { phone, name, message, history, historyKey: key } }];"
             },
             "id": "node-004",
-            "name": "Carregar Histórico",
+            "name": "Carregar Hist\u00f3rico",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
@@ -77,7 +77,7 @@
                 },
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o', temperature: 0.7, messages: [ { role: 'system', content: `Você é um SDR da PromptX, empresa que vende agentes de IA para clínicas de estética.\\n\\nSeu ÚNICO objetivo: marcar uma CALL de 30-45 minutos com o proprietário da clínica.\\n\\nREGRAS ABSOLUTAS:\\n- Máximo 3 linhas por mensagem (estamos no WhatsApp)\\n- Sempre terminar com UMA pergunta\\n- Nunca mencionar 'IA' ou 'chatbot' no primeiro contato\\n- Nunca revelar preço antes da call\\n- Falar como humano, natural e direto\\n- Não parecer vendedor\\n\\nFLUXO:\\n1. PRIMEIRO CONTATO — gancho curto + pergunta sobre tráfego pago\\n2. QUALIFICAÇÃO — confirmar: tem clínica de estética? usa tráfego? tem dor com atendimento?\\n3. PITCH CURTO — criar interesse pela call (não vender o produto)\\n4. AGENDAMENTO — propor 2 opções de horário (nunca pergunta aberta)\\n5. FOLLOW-UP — até 4 tentativas sem resposta\\n\\nQUALIFICADO se: clínica de estética ativa + investe em tráfego + tem dor com atendimento\\nNÃO QUALIFICADO se: outra especialidade, sem tráfego, sem volume de leads\\n\\nOBJEÇÕES:\\n- 'Já tenho recepcionista' → IA desafoga ela do WhatsApp\\n- 'Vai parecer robô?' → treinado com linguagem da clínica, pacientes não percebem\\n- 'Quanto custa?' → depende da clínica, a call é pra entender o caso\\n- 'Não tenho tempo' → quando seria melhor? Adapto ao horário\\n- 'Já conheço' → o que usa? O nosso tem integração específica com agenda\\n\\nQUANDO O LEAD ACEITAR A CALL:\\nResponda normalmente e instrua o lead a acessar o link de agendamento:\\nhttps://calendly.com/promptx/call-30min\\n\\nFORMATO DE MENSAGEM:\\n- Máximo 3 linhas\\n- Uma pergunta no final\\n- Tom natural, sem excessos de emoji` }, ...$input.first().json.history ] }) }}",
+                "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o', temperature: 0.7, messages: [ { role: 'system', content: `Voc\u00ea \u00e9 um SDR da PromptX, empresa que vende agentes de IA para cl\u00ednicas de est\u00e9tica.\\n\\nSeu \u00daNICO objetivo: marcar uma CALL de 30-45 minutos com o propriet\u00e1rio da cl\u00ednica.\\n\\nREGRAS ABSOLUTAS:\\n- M\u00e1ximo 3 linhas por mensagem (estamos no WhatsApp)\\n- Sempre terminar com UMA pergunta\\n- Nunca mencionar 'IA' ou 'chatbot' no primeiro contato\\n- Nunca revelar pre\u00e7o antes da call\\n- Falar como humano, natural e direto\\n- N\u00e3o parecer vendedor\\n\\nFLUXO:\\n1. PRIMEIRO CONTATO \u2014 gancho curto + pergunta sobre tr\u00e1fego pago\\n2. QUALIFICA\u00c7\u00c3O \u2014 confirmar: tem cl\u00ednica de est\u00e9tica? usa tr\u00e1fego? tem dor com atendimento?\\n3. PITCH CURTO \u2014 criar interesse pela call (n\u00e3o vender o produto)\\n4. AGENDAMENTO \u2014 propor 2 op\u00e7\u00f5es de hor\u00e1rio (nunca pergunta aberta)\\n5. FOLLOW-UP \u2014 at\u00e9 4 tentativas sem resposta\\n\\nQUALIFICADO se: cl\u00ednica de est\u00e9tica ativa + investe em tr\u00e1fego + tem dor com atendimento\\nN\u00c3O QUALIFICADO se: outra especialidade, sem tr\u00e1fego, sem volume de leads\\n\\nOBJE\u00c7\u00d5ES:\\n- 'J\u00e1 tenho recepcionista' \u2192 IA desafoga ela do WhatsApp\\n- 'Vai parecer rob\u00f4?' \u2192 treinado com linguagem da cl\u00ednica, pacientes n\u00e3o percebem\\n- 'Quanto custa?' \u2192 depende da cl\u00ednica, a call \u00e9 pra entender o caso\\n- 'N\u00e3o tenho tempo' \u2192 quando seria melhor? Adapto ao hor\u00e1rio\\n- 'J\u00e1 conhe\u00e7o' \u2192 o que usa? O nosso tem integra\u00e7\u00e3o espec\u00edfica com agenda\\n\\nQUANDO O LEAD ACEITAR A CALL:\\nResponda normalmente e instrua o lead a acessar o link de agendamento:\\nhttps://calendly.com/promptx/call-30min\\n\\nFORMATO DE MENSAGEM:\\n- M\u00e1ximo 3 linhas\\n- Uma pergunta no final\\n- Tom natural, sem excessos de emoji` }, ...$input.first().json.history ] }) }}",
                 "options": {}
             },
             "id": "node-005",
@@ -91,7 +91,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Processa resposta do GPT e salva no histórico\nconst historyKey = $('Carregar Histórico').first().json.historyKey;\nconst phone      = $('Carregar Histórico').first().json.phone;\nconst gptBody    = $input.first().json;\nconst reply      = gptBody.choices?.[0]?.message?.content || 'Desculpe, tive um problema técnico. Pode repetir?';\n\n// Salva resposta do assistente no histórico\nconst staticData = $getWorkflowStaticData('global');\nconst history    = staticData[historyKey] || [];\nhistory.push({ role: 'assistant', content: reply });\nif (history.length > 20) history.splice(0, history.length - 20);\nstaticData[historyKey] = history;\n\nreturn [{ json: { phone, reply } }];"
+                "jsCode": "// Processa resposta do GPT e salva no hist\u00f3rico\nconst historyKey = $('Carregar Hist\u00f3rico').first().json.historyKey;\nconst phone      = $('Carregar Hist\u00f3rico').first().json.phone;\nconst gptBody    = $input.first().json;\nconst reply      = gptBody.choices?.[0]?.message?.content || 'Desculpe, tive um problema t\u00e9cnico. Pode repetir?';\n\n// Salva resposta do assistente no hist\u00f3rico\nconst staticData = $getWorkflowStaticData('global');\nconst history    = staticData[historyKey] || [];\nhistory.push({ role: 'assistant', content: reply });\nif (history.length > 20) history.splice(0, history.length - 20);\nstaticData[historyKey] = history;\n\nreturn [{ json: { phone, reply } }];"
             },
             "id": "node-006",
             "name": "Processar Resposta GPT",
@@ -105,7 +105,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "=https://api.z-api.io/instances/3EFAF7CBC4A93154DAE19A95FA8C442C/token/F21AA9BABAB2B9E8160B8BC2/send-text",
+                "url": "={{ $env.EVOLUTION_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
@@ -114,8 +114,8 @@
                             "value": "application/json"
                         },
                         {
-                            "name": "Client-Token",
-                            "value": "F482e7f15fadb4042a6047ab2e70cc69aS"
+                            "name": "apikey",
+                            "value": "={{ $env.EVOLUTION_APIKEY }}"
                         }
                     ]
                 },
@@ -125,12 +125,12 @@
                 "bodyParameters": {
                     "parameters": [
                         {
-                            "name": "phone",
+                            "name": "number",
                             "value": "={{ $json.phone }}"
                         },
                         {
-                            "name": "message",
-                            "value": "={{ $json.reply }}"
+                            "name": "textMessage",
+                            "value": "={{ JSON.stringify({ text: $json.reply }) }}"
                         }
                     ]
                 },
@@ -163,7 +163,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Se a IA estiver desativada para este n\u00famero, para o workflow\nconst aiStatus = $input.first().json;\nconst histData = $('Carregar Hist\u00f3rico').first().json;\n\n// Se erro na chamada ou aiEnabled=false, para aqui\nif (aiStatus.aiEnabled === false) {\n  console.log('[SDR] IA desativada para ' + histData.phone + '. Modo manual ativo.');\n  return []; // Para o workflow — n\u00e3o envia resposta\n}\n\n// Passa os dados do hist\u00f3rico para o pr\u00f3ximo node\nreturn [{ json: histData }];"
+                "jsCode": "// Se a IA estiver desativada para este n\u00famero, para o workflow\nconst aiStatus = $input.first().json;\nconst histData = $('Carregar Hist\u00f3rico').first().json;\n\n// Se erro na chamada ou aiEnabled=false, para aqui\nif (aiStatus.aiEnabled === false) {\n  console.log('[SDR] IA desativada para ' + histData.phone + '. Modo manual ativo.');\n  return []; // Para o workflow \u2014 n\u00e3o envia resposta\n}\n\n// Passa os dados do hist\u00f3rico para o pr\u00f3ximo node\nreturn [{ json: histData }];"
             },
             "id": "node-009",
             "name": "Filtrar IA Desativada",
@@ -201,6 +201,34 @@
                 520
             ],
             "continueOnFail": true
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://script.google.com/macros/s/AKfycbyGhXVhF6PSIoh36aggLrDgbImLblFVBF7tT_eGDwxmyUfQtApOpAzzk9TgVmKwyHwGZA/exec",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ action: 'webhook_save_message', phone: $('Carregar Hist\u00f3rico').first().json.phone, role: 'assistant', content: $('Processar Resposta GPT').first().json.reply }) }}",
+                "options": {}
+            },
+            "id": "node-save-ia",
+            "name": "Salvar Resposta IA",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                2000,
+                340
+            ],
+            "continueOnFail": true
         }
     ],
     "connections": {
@@ -224,14 +252,14 @@
             "main": [
                 [
                     {
-                        "node": "Carregar Histórico",
+                        "node": "Carregar Hist\u00f3rico",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "Carregar Histórico": {
+        "Carregar Hist\u00f3rico": {
             "main": [
                 [
                     {
