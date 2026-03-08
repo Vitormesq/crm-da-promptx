@@ -1548,6 +1548,72 @@
       border: 1px solid rgba(239, 68, 68, .3);
     }
 
+    .agent-evo-status {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .agent-evo-status.ok {
+      display: block;
+      background: rgba(16, 185, 129, .1);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, .3);
+    }
+
+    .agent-evo-status.err {
+      display: block;
+      background: rgba(239, 68, 68, .1);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, .3);
+    }
+
+    .agent-evo-status.info {
+      display: block;
+      background: rgba(108, 99, 255, .1);
+      color: var(--accent);
+      border: 1px solid rgba(108, 99, 255, .3);
+    }
+
+
+    .integ-nav-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: .2s;
+      margin-bottom: 2px;
+    }
+
+    .integ-nav-item:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, .05);
+    }
+
+    .integ-nav-item.active {
+      background: rgba(108, 99, 255, .15);
+      color: var(--accent);
+    }
+
+    .integ-section {
+      display: none;
+    }
+
+    .integ-section.active {
+      display: block;
+      animation: fadeUp .3s ease forwards;
+    }
+
     /* ══ CHAT PANEL ══ */
     .chat-view {
       display: none;
@@ -1860,6 +1926,8 @@
             </span>Conversas</button>
           <button class="ptab" id="tabAgente" onclick="switchToAgente(this)"><span class="ptab-emoji">⚙️
             </span>Agente IA</button>
+          <button class="ptab" id="tabIntegrations" onclick="switchToIntegrations(this)"><span class="ptab-emoji">🔌
+            </span>Integrações</button>
         </div>
         <button class="btn bp" id="btnMainAdd" onclick="openModal()">+ Lead</button>
         <button class="logout-btn" id="logoutBtn" style="display:none" onclick="logout()">Sair</button>
@@ -1926,40 +1994,16 @@
         <div class="agent-sidebar">
           <div class="agent-sidebar-head">⚙️ Configuração do Agente</div>
           <nav class="agent-nav">
-            <button class="agent-nav-item active" onclick="showAgentSection('webhook',this)">🔗 Webhook n8n</button>
-            <button class="agent-nav-item" onclick="showAgentSection('persona',this)">🤖 Persona</button>
+
+
+            <button class="agent-nav-item active" onclick="showAgentSection('persona',this)">🤖 Persona</button>
             <button class="agent-nav-item" onclick="showAgentSection('restrict',this)">🚫 Restrições</button>
             <button class="agent-nav-item" onclick="showAgentSection('skills',this)">✨ Habilidades</button>
           </nav>
         </div>
         <div class="agent-main">
-          <!-- WEBHOOK -->
-          <div class="agent-section active" id="agentSec_webhook">
-            <div class="agent-sec-title">🔗 Webhook n8n</div>
-            <div class="agent-sec-desc">URL do webhook que receberá as mensagens do WhatsApp e acionará o agente.</div>
-            <div class="agent-field">
-              <label>URL do Webhook</label>
-              <input id="cfg_webhook_url" placeholder="https://n8n.meuagentepro.com/webhook/sdr-promptx" />
-            </div>
-            <div class="agent-field">
-              <label>Método de envio</label>
-              <select id="cfg_webhook_method">
-                <option value="POST">POST</option>
-                <option value="GET">GET</option>
-              </select>
-            </div>
-            <div class="agent-field">
-              <label>Header de autenticação (opcional)</label>
-              <input id="cfg_webhook_auth" placeholder="Bearer SEU_TOKEN" />
-            </div>
-            <div class="agent-test-area" id="agentWebhookTestArea"></div>
-            <div class="agent-actions">
-              <button class="agent-btn-test" onclick="testWebhook()">▶ Testar Conexão</button>
-              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
-            </div>
-          </div>
           <!-- PERSONA -->
-          <div class="agent-section" id="agentSec_persona">
+          <div class="agent-section" id="agentSec_persona" class="agent-section active">
             <div class="agent-sec-title">🤖 Persona do Agente</div>
             <div class="agent-sec-desc">Define quem é o agente, seu nome, tom de voz e objetivo principal.</div>
             <div class="agent-field">
@@ -2025,6 +2069,84 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
             <div class="agent-actions">
               <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
               <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTEGRACOES PANEL -->
+      <div class="agent-view" id="integrationsView">
+        <div class="agent-sidebar">
+          <div class="agent-sidebar-head">🔌 Integrações</div>
+          <nav class="agent-nav">
+            <button class="integ-nav-item active" onclick="showIntegSection('webhook',this)">🔗 Webhook n8n</button>
+            <button class="integ-nav-item" onclick="showIntegSection('whatsapp',this)">📱 WhatsApp</button>
+          </nav>
+        </div>
+        <div class="agent-main">
+          <!-- WEBHOOK -->
+          <div class="integ-section active" id="integSec_webhook">
+            <div class="agent-sec-title">🔗 Webhook n8n</div>
+            <div class="agent-sec-desc">URL do webhook que receberá as mensagens do WhatsApp e acionará o agente.</div>
+            <div class="agent-field">
+              <label>URL do Webhook</label>
+              <input id="cfg_webhook_url" placeholder="https://n8n.meuagentepro.com/webhook/sdr-promptx" />
+            </div>
+            <div class="agent-field">
+              <label>Método de envio</label>
+              <select id="cfg_webhook_method">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+              </select>
+            </div>
+            <div class="agent-field">
+              <label>Header de autenticação (opcional)</label>
+              <input id="cfg_webhook_auth" placeholder="Bearer SEU_TOKEN" />
+            </div>
+            <div class="agent-test-area" id="agentWebhookTestArea"></div>
+            <div class="agent-actions">
+              <button class="agent-btn-test" onclick="testWebhook()">▶ Testar Conexão</button>
+              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
+            </div>
+          </div>
+
+          <!-- WHATSAPP / EVOLUTION API -->
+          <div class="integ-section" id="integSec_whatsapp">
+            <div class="agent-sec-title">📱 WhatsApp — Evolution API</div>
+            <div class="agent-sec-desc">Conecte seu número de WhatsApp via Evolution API. Ao salvar, o webhook será
+              configurado automaticamente para receber todas as mensagens no n8n.</div>
+
+            <div class="agent-field">
+              <label>URL da sua Evolution API</label>
+              <input id="cfg_evo_url" placeholder="https://evolution.seudominio.com" />
+            </div>
+            <div class="agent-field">
+              <label>Nome da instância</label>
+              <input id="cfg_evo_instance" placeholder="promptx" />
+            </div>
+            <div class="agent-field">
+              <label>API Key (Global ou da instância)</label>
+              <input id="cfg_evo_apikey" type="password" placeholder="sua-api-key" />
+            </div>
+            <div class="agent-field">
+              <label>URL do n8n para receber mensagens</label>
+              <input id="cfg_evo_n8n_webhook" placeholder="https://n8n.meuagentepro.com/webhook/sdr-promptx" />
+            </div>
+
+            <div class="agent-evo-status" id="evoStatus"></div>
+
+            <div class="agent-actions" style="flex-wrap:wrap;gap:8px">
+              <button class="agent-btn-test" onclick="testEvoConnection()">🔍 Verificar Conexão</button>
+              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
+              <button class="agent-btn-send" onclick="configureEvoWebhook()">⚡ Configurar Webhook no Evolution</button>
+            </div>
+
+            <div
+              style="margin-top:24px;padding:14px 16px;border-radius:10px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);font-size:12px;color:var(--muted);line-height:1.7">
+              <strong style="color:var(--text)">Como funciona após conectar:</strong><br>
+              ✅ Toda mensagem recebida no WhatsApp vai para o n8n<br>
+              ✅ Toda mensagem enviada (você ou a IA) é salva no histórico<br>
+              ✅ A aba Conversas mostra tudo em tempo real
             </div>
           </div>
         </div>
@@ -2811,9 +2933,31 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
       document.getElementById('boardWrap').style.display = 'none';
       document.getElementById('sidebar').classList.add('closed');
       document.getElementById('chatView').classList.remove('active');
+      document.getElementById('integrationsView').classList.remove('active');
       document.getElementById('agentView').classList.add('active');
       if (chatState && chatState.polling) { clearInterval(chatState.polling); chatState.polling = null; }
       loadAgentConfig();
+    }
+
+
+    function switchToIntegrations(el) {
+      document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('boardWrap').style.display = 'none';
+      document.getElementById('sidebar').classList.add('closed');
+      document.getElementById('chatView').classList.remove('active');
+      document.getElementById('agentView').classList.remove('active');
+      document.getElementById('integrationsView').classList.remove('active');
+      document.getElementById('integrationsView').classList.add('active');
+      if (chatState && chatState.polling) { clearInterval(chatState.polling); chatState.polling = null; }
+      loadAgentConfig(); // Aproveitamos o shared state
+    }
+
+    function showIntegSection(name, el) {
+      document.querySelectorAll('.integ-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.integ-nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('integSec_' + name).classList.add('active');
+      el.classList.add('active');
     }
 
     function showAgentSection(name, el) {
@@ -2837,6 +2981,11 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
         set('cfg_skills', cfg.skills || '');
         set('cfg_flow', cfg.flow || '');
         set('cfg_cal_link', cfg.calLink || '');
+        // Evolution API
+        set('cfg_evo_url', cfg.evoUrl || '');
+        set('cfg_evo_instance', cfg.evoInstance || '');
+        set('cfg_evo_apikey', cfg.evoApikey || '');
+        set('cfg_evo_n8n_webhook', cfg.evoN8nWebhook || 'https://n8n.meuagentepro.com/webhook/sdr-promptx');
       } catch (e) { }
     }
 
@@ -2853,6 +3002,11 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
         skills: get('cfg_skills'),
         flow: get('cfg_flow'),
         calLink: get('cfg_cal_link'),
+        // Evolution API
+        evoUrl: get('cfg_evo_url'),
+        evoInstance: get('cfg_evo_instance'),
+        evoApikey: get('cfg_evo_apikey'),
+        evoN8nWebhook: get('cfg_evo_n8n_webhook'),
       };
     }
 
@@ -2905,18 +3059,14 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
       const area = document.getElementById('agentWebhookTestArea');
       if (!url) { area.className = 'agent-test-area err'; area.textContent = '❌ Informe a URL do webhook'; return; }
       area.className = 'agent-test-area'; area.textContent = 'Testando...';
-
       try {
         const auth = document.getElementById('cfg_webhook_auth').value.trim();
         const headers = { 'Content-Type': 'application/json' };
         if (auth) headers['Authorization'] = auth;
-
         const res = await fetch(url, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ action: 'ping', source: 'promptx-crm', timestamp: new Date().toISOString() }),
+          method: 'POST', headers,
+          body: JSON.stringify({ action: 'ping', source: 'promptx-crm', timestamp: new Date().toISOString() })
         });
-
         area.className = 'agent-test-area ok';
         area.textContent = `✅ Webhook respondeu! Status: ${res.status}`;
       } catch (e) {
@@ -2925,8 +3075,112 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
       }
     }
 
+    // ── Evolution API helpers ─────────────────────────────
+    function getEvoCfg() {
+      const cfg = JSON.parse(localStorage.getItem(AGENT_CFG_KEY) || '{}');
+      return {
+        url: cfg.evoUrl || document.getElementById('cfg_evo_url')?.value?.trim(),
+        instance: cfg.evoInstance || document.getElementById('cfg_evo_instance')?.value?.trim(),
+        apikey: cfg.evoApikey || document.getElementById('cfg_evo_apikey')?.value?.trim(),
+        n8nWebhook: cfg.evoN8nWebhook || document.getElementById('cfg_evo_n8n_webhook')?.value?.trim(),
+      };
+    }
+
+    async function testEvoConnection() {
+      const st = document.getElementById('evoStatus');
+      const cfg = getEvoCfg();
+      if (!cfg.url || !cfg.instance || !cfg.apikey) {
+        st.className = 'agent-evo-status err';
+        st.textContent = '❌ Preencha URL, instância e API Key antes de testar';
+        return;
+      }
+      st.className = 'agent-evo-status info'; st.textContent = '🔄 Verificando...';
+      try {
+        const res = await fetch(`${cfg.url}/instance/fetchInstances`, {
+          headers: { 'apikey': cfg.apikey }
+        });
+        const data = await res.json();
+        const inst = (Array.isArray(data) ? data : [data]).find(i =>
+          (i.instance?.instanceName || i.instanceName || '').toLowerCase() === cfg.instance.toLowerCase()
+        );
+        if (inst) {
+          const state = inst.instance?.connectionStatus || inst.connectionStatus || 'unknown';
+          if (state === 'open') {
+            st.className = 'agent-evo-status ok';
+            st.textContent = '✅ WhatsApp conectado e online!';
+          } else {
+            st.className = 'agent-evo-status err';
+            st.textContent = `⚠️ Instância encontrada mas status: ${state}. Escaneie o QR Code no painel Evolution.`;
+          }
+        } else {
+          st.className = 'agent-evo-status err';
+          st.textContent = `❌ Instância "${cfg.instance}" não encontrada. Verifique o nome exato.`;
+        }
+      } catch (e) {
+        st.className = 'agent-evo-status err';
+        st.textContent = `❌ Erro ao conectar: ${e.message}`;
+      }
+    }
+
+    async function configureEvoWebhook() {
+      const st = document.getElementById('evoStatus');
+      const cfg = getEvoCfg();
+      if (!cfg.url || !cfg.instance || !cfg.apikey) {
+        st.className = 'agent-evo-status err';
+        st.textContent = '❌ Preencha URL, instância e API Key primeiro';
+        return;
+      }
+      if (!cfg.n8nWebhook) {
+        st.className = 'agent-evo-status err';
+        st.textContent = '❌ Informe a URL do n8n para receber as mensagens';
+        return;
+      }
+      saveAgentConfig();
+      st.className = 'agent-evo-status info'; st.textContent = '⚡ Configurando webhook na Evolution...';
+      try {
+        const res = await fetch(`${cfg.url}/webhook/set/${cfg.instance}`, {
+          method: 'POST',
+          headers: { 'apikey': cfg.apikey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            webhook: {
+              enabled: true,
+              url: cfg.n8nWebhook,
+              webhookByEvents: false,
+              webhookBase64: false,
+              events: ['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'CONNECTION_UPDATE'],
+            }
+          })
+        });
+        if (res.ok) {
+          st.className = 'agent-evo-status ok';
+          st.textContent = '✅ Webhook configurado! Todas as mensagens agora chegam no n8n automaticamente.';
+        } else {
+          const err = await res.text();
+          st.className = 'agent-evo-status err';
+          st.textContent = `⚠️ Erro ${res.status}: ${err.slice(0, 120)}`;
+        }
+      } catch (e) {
+        st.className = 'agent-evo-status err';
+        st.textContent = `❌ Falha: ${e.message}`;
+      }
+    }
+
+    // ── Enviar msg via Evolution API (usado no chat manual) ─
+    async function sendMsgViaEvolution(phone, text) {
+      const cfg = getEvoCfg();
+      if (!cfg.url || !cfg.instance || !cfg.apikey) return false;
+      const cleanPhone = String(phone).replace(/\D/g, '');
+      const res = await fetch(`${cfg.url}/message/sendText/${cfg.instance}`, {
+        method: 'POST',
+        headers: { 'apikey': cfg.apikey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: cleanPhone, textMessage: { text } })
+      });
+      return res.ok;
+    }
+
     /* ═══════════════ CHAT / CONVERSAS ═══════════════ */
-    // Z-API config (usa as mesmas credenciais do workflow)
+    // Credenciais Evolution (lidas do localStorage via getEvoCfg())
+
     const ZAPI = {
       instance: '3EFAF7CBC4A93154DAE19A95FA8C442C',
       token: 'F21AA9BABAB2B9E8160B8BC2',
@@ -3079,13 +3333,12 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
       input.value = '';
 
       try {
-        // Send via Z-API
-        const res = await fetch(`${ZAPI_BASE}/send-text`, {
-          method: 'POST',
-          headers: ZAPI_HEADERS,
-          body: JSON.stringify({ phone: chatState.phone, message: msg }),
-        });
-        if (!res.ok) throw new Error('Z-API error ' + res.status);
+        // Envia via Evolution API usando a config local
+        const success = await sendMsgViaEvolution(chatState.phone, msg);
+        if (!success) {
+          toast('⚠️ Falha ao enviar pela Evolution API. Verifique credenciais na aba Agente IA.');
+          return;
+        }
 
         // Save to Apps Script as 'assistant' message (sent by human manually)
         if (useAPI()) {
