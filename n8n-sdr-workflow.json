@@ -34,7 +34,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Extrai dados da mensagem Evolution API (MESSAGES_UPSERT)\nconst body = $input.first().json.body || $input.first().json;\n\n// Garante que \u00e9 um evento de mensagem\nif (body.event !== 'messages.upsert') return [];\nconst msg = body.data?.messages?.[0] || body.data;\nif (!msg) return [];\n\n// Ignora mensagens enviadas por n\u00f3s mesmos (evita loop)\nif (msg.key?.fromMe) return [];\n\n// Ignora grupos\nif (msg.key?.remoteJid?.includes('@g.us')) return [];\n\n// Extrai campos principais\nconst phone = String(msg.key?.remoteJid || '').replace(/\\D/g, '');\nconst message = msg.message?.conversation \n  || msg.message?.extendedTextMessage?.text \n  || '';\nconst name = msg.pushName || 'Lead';\n\nif (!phone || !message.trim()) return [];\n\nreturn [{ json: { phone, message: message.trim(), name } }];"
+                "jsCode": "// Extrai dados da mensagem Evolution API (MESSAGES_UPSERT)\nconst body = $input.first().json.body || $input.first().json;\n\n// Se for requisi\u00e7\u00e3o de atualiza\u00e7\u00e3o de config vinda do CRM\nif (body.action === 'update_agent_config') {\n    const staticData = $getWorkflowStaticData('global');\n    staticData.agentConfig = body;\n    // Retorna vazio para o fluxo n\u00e3o continuar\n    return [];\n}\n\n// Garante que \u00e9 um evento de mensagem\nif (body.event !== 'messages.upsert') return [];\nconst msg = body.data?.messages?.[0] || body.data;\nif (!msg) return [];\n\n// Ignora mensagens enviadas por n\u00f3s mesmos (evita loop)\nif (msg.key?.fromMe) return [];\n\n// Ignora grupos\nif (msg.key?.remoteJid?.includes('@g.us')) return [];\n\n// Extrai campos principais\nconst phone = String(msg.key?.remoteJid || '').replace(/\\D/g, '');\nconst message = msg.message?.conversation \n  || msg.message?.extendedTextMessage?.text \n  || '';\nconst name = msg.pushName || 'Lead';\n\nif (!phone || !message.trim()) return [];\n\nreturn [{ json: { phone, message: message.trim(), name } }];\n"
             },
             "id": "node-003",
             "name": "Extrair Dados Evolution",
@@ -77,7 +77,7 @@
                 },
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o', temperature: 0.7, messages: [ { role: 'system', content: `Voc\u00ea \u00e9 um SDR da PromptX, empresa que vende agentes de IA para cl\u00ednicas de est\u00e9tica.\\n\\nSeu \u00daNICO objetivo: marcar uma CALL de 30-45 minutos com o propriet\u00e1rio da cl\u00ednica.\\n\\nREGRAS ABSOLUTAS:\\n- M\u00e1ximo 3 linhas por mensagem (estamos no WhatsApp)\\n- Sempre terminar com UMA pergunta\\n- Nunca mencionar 'IA' ou 'chatbot' no primeiro contato\\n- Nunca revelar pre\u00e7o antes da call\\n- Falar como humano, natural e direto\\n- N\u00e3o parecer vendedor\\n\\nFLUXO:\\n1. PRIMEIRO CONTATO \u2014 gancho curto + pergunta sobre tr\u00e1fego pago\\n2. QUALIFICA\u00c7\u00c3O \u2014 confirmar: tem cl\u00ednica de est\u00e9tica? usa tr\u00e1fego? tem dor com atendimento?\\n3. PITCH CURTO \u2014 criar interesse pela call (n\u00e3o vender o produto)\\n4. AGENDAMENTO \u2014 propor 2 op\u00e7\u00f5es de hor\u00e1rio (nunca pergunta aberta)\\n5. FOLLOW-UP \u2014 at\u00e9 4 tentativas sem resposta\\n\\nQUALIFICADO se: cl\u00ednica de est\u00e9tica ativa + investe em tr\u00e1fego + tem dor com atendimento\\nN\u00c3O QUALIFICADO se: outra especialidade, sem tr\u00e1fego, sem volume de leads\\n\\nOBJE\u00c7\u00d5ES:\\n- 'J\u00e1 tenho recepcionista' \u2192 IA desafoga ela do WhatsApp\\n- 'Vai parecer rob\u00f4?' \u2192 treinado com linguagem da cl\u00ednica, pacientes n\u00e3o percebem\\n- 'Quanto custa?' \u2192 depende da cl\u00ednica, a call \u00e9 pra entender o caso\\n- 'N\u00e3o tenho tempo' \u2192 quando seria melhor? Adapto ao hor\u00e1rio\\n- 'J\u00e1 conhe\u00e7o' \u2192 o que usa? O nosso tem integra\u00e7\u00e3o espec\u00edfica com agenda\\n\\nQUANDO O LEAD ACEITAR A CALL:\\nResponda normalmente e instrua o lead a acessar o link de agendamento:\\nhttps://calendly.com/promptx/call-30min\\n\\nFORMATO DE MENSAGEM:\\n- M\u00e1ximo 3 linhas\\n- Uma pergunta no final\\n- Tom natural, sem excessos de emoji` }, ...$input.first().json.history ] }) }}",
+                "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o', temperature: 0.7, messages: [ { role: 'system', content: $json.dynamicPrompt }, ...$input.first().json.history ] }) }}",
                 "options": {}
             },
             "id": "node-005",
@@ -229,6 +229,19 @@
                 340
             ],
             "continueOnFail": true
+        },
+        {
+            "parameters": {
+                "jsCode": "// Monta o prompt din\u00e2mico baseado na config salva\nconst staticData = $getWorkflowStaticData('global');\nconst cfg = staticData.agentConfig || {\n  agentName: 'SDR da PromptX',\n  systemPrompt: 'Voc\u00ea \u00e9 um assistente \u00fatil focado em marcar calls.',\n  restrictions: ['Nunca revelar pre\u00e7o antes da call', 'Nunca falar que \u00e9 IA'],\n  skills: ['Qualificar leads', 'Agendar reuni\u00f5es'],\n  flow: ['1. Primeiro contato', '2. Relacionamento', '3. Agendamento']\n};\n\nlet prompt = `${cfg.systemPrompt}\\n\\n`;\n\nif (cfg.restrictions && cfg.restrictions.length > 0) {\n    prompt += `REGRAS ABSOLUTAS:\\n- ${cfg.restrictions.join('\\n- ')}\\n\\n`;\n}\n\nif (cfg.skills && cfg.skills.length > 0) {\n    prompt += `HABILIDADES E INFORMA\u00c7\u00d5ES:\\n- ${cfg.skills.join('\\n- ')}\\n\\n`;\n}\n\nif (cfg.flow && cfg.flow.length > 0) {\n    prompt += `FLUXO DE CONVERSA:\\n${cfg.flow.map((f, i) => `${i+1}. ${f}`).join('\\n')}\\n\\n`;\n}\n\nif (cfg.calLink) {\n    prompt += `LINK DE AGENDAMENTO: ${cfg.calLink}\\n\\n`;\n}\n\nprompt += `FORMATO DA MENSAGEM: Seja natural, n\u00e3o pare\u00e7a um rob\u00f4. Responda de forma curta (m\u00e1x 3 linhas) e sempre termine com uma pergunta no final.`;\n\nreturn [{ json: { ...$input.first().json, dynamicPrompt: prompt } }];\n"
+            },
+            "id": "node-prompt-dinamico",
+            "name": "Montar Prompt Din\u00e2mico",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                700,
+                190
+            ]
         }
     ],
     "connections": {
@@ -313,6 +326,17 @@
                 [
                     {
                         "node": "Enviar Resposta WPP",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Montar Prompt Din\u00e2mico": {
+            "main": [
+                [
+                    {
+                        "node": "GPT-4o SDR",
                         "type": "main",
                         "index": 0
                     }
