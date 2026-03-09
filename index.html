@@ -3100,11 +3100,13 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
           headers: { 'apikey': cfg.apikey }
         });
         const data = await res.json();
-        const inst = (Array.isArray(data) ? data : [data]).find(i =>
-          (i.instance?.instanceName || i.instanceName || '').toLowerCase() === cfg.instance.toLowerCase()
-        );
+        console.log("Evolution API fetchInstances data:", data); // Debug do retorno
+        const inst = (Array.isArray(data) ? data : [data]).find(i => {
+          const name = (i.name || i.instance?.instanceName || i.instanceName || '').toLowerCase();
+          return name === cfg.instance.toLowerCase();
+        });
         if (inst) {
-          const state = inst.instance?.connectionStatus || inst.connectionStatus || 'unknown';
+          const state = inst.connectionStatus || inst.instance?.connectionStatus || 'unknown';
           if (state === 'open') {
             st.className = 'agent-evo-status ok';
             st.textContent = '✅ WhatsApp conectado e online!';
@@ -3114,7 +3116,7 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
           }
         } else {
           st.className = 'agent-evo-status err';
-          st.textContent = `❌ Instância "${cfg.instance}" não encontrada. Verifique o nome exato.`;
+          st.textContent = `❌ Instância "${cfg.instance}" não encontrada. Verifique o nome exato. Nomes disponíveis: ${(Array.isArray(data) ? data : [data]).map(i => i.name || i.instance?.instanceName || i.instanceName).join(', ')}`;
         }
       } catch (e) {
         st.className = 'agent-evo-status err';
