@@ -3101,10 +3101,11 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
         });
         const data = await res.json();
         console.log("Evolution API fetchInstances data:", data); // Debug do retorno
-        const inst = (Array.isArray(data) ? data : [data]).find(i => {
+        const inst = Array.isArray(data) ? data.find(i => {
           const name = (i.name || i.instance?.instanceName || i.instanceName || '').toLowerCase();
           return name === cfg.instance.toLowerCase();
-        });
+        }) : null;
+
         if (inst) {
           const state = inst.connectionStatus || inst.instance?.connectionStatus || 'unknown';
           if (state === 'open') {
@@ -3116,7 +3117,15 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
           }
         } else {
           st.className = 'agent-evo-status err';
-          st.textContent = `❌ Instância "${cfg.instance}" não encontrada. Verifique o nome exato. Nomes disponíveis: ${(Array.isArray(data) ? data : [data]).map(i => i.name || i.instance?.instanceName || i.instanceName).join(', ')}`;
+
+          if (data.status === 401 || data.error === "Unauthorized" || res.status === 401) {
+            st.textContent = `❌ API Key recusada (Não Autorizado). Verifique se a chave está correta.`;
+          } else if (Array.isArray(data)) {
+            const validNames = data.map(i => i.name || i.instance?.instanceName || i.instanceName).filter(Boolean).join(', ');
+            st.textContent = `❌ Instância "${cfg.instance}" não encontrada. Nomes que a API enxerga: ${validNames || 'Nenhum'}`;
+          } else {
+            st.textContent = `❌ Erro inesperado: ${JSON.stringify(data).substring(0, 100)}`;
+          }
         }
       } catch (e) {
         st.className = 'agent-evo-status err';
