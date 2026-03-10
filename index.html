@@ -1991,87 +1991,15 @@
       </div>
       <!-- AGENTE IA CONFIG PANEL -->
       <div class="agent-view" id="agentView">
-        <div class="agent-sidebar">
-          <div class="agent-sidebar-head">⚙️ Configuração do Agente</div>
-          <nav class="agent-nav">
-
-
-            <button class="agent-nav-item active" onclick="showAgentSection('persona',this)">🤖 Persona</button>
-            <button class="agent-nav-item" onclick="showAgentSection('restrict',this)">🚫 Restrições</button>
-            <button class="agent-nav-item" onclick="showAgentSection('skills',this)">✨ Habilidades</button>
-          </nav>
-        </div>
-        <div class="agent-main">
-          <!-- PERSONA -->
-          <div class="agent-section active" id="agentSec_persona">
-            <div class="agent-sec-title">🤖 Persona do Agente</div>
-            <div class="agent-sec-desc">Define quem é o agente, seu nome, tom de voz e objetivo principal.</div>
-            <div class="agent-field">
-              <label>Nome do agente</label>
-              <input id="cfg_agent_name" placeholder="Ex: Sofia, Mart, Lucas..." />
-            </div>
-            <div class="agent-field">
-              <label>Prompt do sistema (System Prompt)</label>
-              <textarea id="cfg_system_prompt" rows="12" placeholder="Você é [nome], SDR da [empresa]...
-Seu objetivo é marcar uma call de demonstração.
-Fale de forma natural, como humano.
-Máximo 3 linhas por mensagem."></textarea>
-            </div>
-            <div class="agent-actions">
-              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
-              <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
-            </div>
-          </div>
-
-          <!-- RESTRIÇÕES -->
-          <div class="agent-section" id="agentSec_restrict">
-            <div class="agent-sec-title">🚫 Restrições</div>
-            <div class="agent-sec-desc">O que o agente NUNCA deve fazer ou falar.</div>
-            <div class="agent-field">
-              <label>Restrições (uma por linha)</label>
-              <textarea id="cfg_restrictions" rows="10" placeholder="Nunca revelar preço antes da call
-Nunca mencionar concorrentes
-Nunca usar palavras como 'chatbot' ou 'robô'
-Não prometer resultados específicos
-Não pedir dados pessoais sensíveis"></textarea>
-            </div>
-            <div class="agent-field">
-              <label>Palavras bloqueadas (separadas por vírgula)</label>
-              <input id="cfg_blocked_words" placeholder="spam, promoção, urgente, clique aqui" />
-            </div>
-            <div class="agent-actions">
-              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
-              <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
-            </div>
-          </div>
-
-          <!-- HABILIDADES -->
-          <div class="agent-section" id="agentSec_skills">
-            <div class="agent-sec-title">✨ Habilidades</div>
-            <div class="agent-sec-desc">O que o agente sabe fazer e deve priorizar.</div>
-            <div class="agent-field">
-              <label>Habilidades principais (uma por linha)</label>
-              <textarea id="cfg_skills" rows="8" placeholder="Qualificar leads de clínicas de estética
-Marcar calls de 30-45 minutos
-Responder objeções comuns
-Acompanhar follow-up em até 4 tentativas"></textarea>
-            </div>
-            <div class="agent-field">
-              <label>Fluxo de conversa</label>
-              <textarea id="cfg_flow" rows="6" placeholder="1. Primeiro contato — gancho + pergunta sobre dor
-2. Qualificação — confirmar fit
-3. Pitch — criar interesse pela call
-4. Agendamento — propor 2 horários
-5. Follow-up — até 4 tentativas"></textarea>
-            </div>
-            <div class="agent-field">
-              <label>Link de agendamento (Calendly, etc.)</label>
-              <input id="cfg_cal_link" placeholder="https://calendly.com/promptx/call-30min" />
-            </div>
-            <div class="agent-actions">
-              <button class="agent-btn-save" onclick="saveAgentConfig()">💾 Salvar</button>
-              <button class="agent-btn-send" onclick="sendConfigToN8n()">🚀 Aplicar no n8n</button>
-            </div>
+        <div class="agent-main" style="width:100%; justify-content:center; align-items:center; display:flex;">
+          <div style="text-align:center; padding: 40px; color: var(--muted); max-width: 400px; line-height: 1.5;">
+            <div style="font-size:40px; margin-bottom:16px;">🧠</div>
+            <h3 style="color:var(--text); margin-bottom:8px;">O Agente agora mora no n8n</h3>
+            <p>Para simplificar a edi\u00e7\u00e3o e testes, o comportamento do seu rob\u00f4 n\u00e3o \u00e9 mais
+              configurado por este painel.</p>
+            <p style="margin-top:12px;">V\u00e1 at\u00e9 o seu fluxo no n8n, procure pelo n\u00f3 chamado <b>"Configurar
+                Prompt da IA"</b> e digite suas regras (Persona, SPIN Selling, Restri\u00e7\u00f5es) direto ali na tela!
+            </p>
           </div>
         </div>
       </div>
