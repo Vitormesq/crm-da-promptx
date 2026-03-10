@@ -303,7 +303,7 @@
             "main": [
                 [
                     {
-                        "node": "Montar Prompt Dinâmico",
+                        "node": "Configurar Prompt da IA",
                         "type": "main",
                         "index": 0
                     }
@@ -332,7 +332,7 @@
                 ]
             ]
         },
-        "Montar Prompt Din\u00e2mico": {
+        "Configurar Prompt da IA": {
             "main": [
                 [
                     {
