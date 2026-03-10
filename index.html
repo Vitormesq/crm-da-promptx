@@ -3290,8 +3290,8 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
 
           if (res.ok) {
             const data = await res.json();
-            // Evolution API retorna um objeto aninhado. O array de msgs costuma vir em data.messages ou no próprio data.
-            let items = data.messages || data.data || data;
+            // Evolution API retorna um objeto aninhado.
+            let items = data.messages?.records || data.messages || data.data || data;
             if (Array.isArray(items)) {
               // Filtra apenas mensagens enviadas e recebidas com texto
               items = items.filter(m => m.message?.conversation || m.message?.extendedTextMessage?.text);
