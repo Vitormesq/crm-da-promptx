@@ -303,7 +303,7 @@
             "main": [
                 [
                     {
-                        "node": "GPT-4o SDR",
+                        "node": "Montar Prompt Dinâmico",
                         "type": "main",
                         "index": 0
                     }
