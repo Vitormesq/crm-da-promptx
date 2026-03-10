@@ -105,7 +105,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "={{ $env.EVOLUTION_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+                "url": "https://api.dbconecta.com/message/sendText/MESQUITA",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
@@ -115,7 +115,7 @@
                         },
                         {
                             "name": "apikey",
-                            "value": "={{ $env.EVOLUTION_APIKEY }}"
+                            "value": "9AF89C449535-4B0B-869C-CE24EC7112BB"
                         }
                     ]
                 },
@@ -129,8 +129,8 @@
                             "value": "={{ $json.phone }}"
                         },
                         {
-                            "name": "textMessage",
-                            "value": "={{ JSON.stringify({ text: $json.reply }) }}"
+                            "name": "text",
+                            "value": "={{ $json.reply }}"
                         }
                     ]
                 },
