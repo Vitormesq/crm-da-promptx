@@ -3272,23 +3272,54 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
       const msgs = document.getElementById('chatMsgs');
 
       try {
-        // Try Apps Script stored messages first
-        if (useAPI()) {
-          const url = CONFIG.APPS_SCRIPT_URL + '?action=automation_messages&phone=' + chatState.phone;
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data && data.messages && data.messages.length > 0) {
-            renderMessages(data.messages);
-            return;
+        const evoCfg = getEvoCfg();
+        // Se tem a API configurada, puxa direto da Evolution API (Tempo real)
+        if (evoCfg.url && evoCfg.instance && evoCfg.apikey) {
+          const remoteJid = `55${chatState.phone.replace(/\D/g, '')}@s.whatsapp.net`;
+
+          const res = await fetch(`${evoCfg.url}/chat/findMessages/${evoCfg.instance}`, {
+            method: 'POST',
+            headers: {
+              'apikey': evoCfg.apikey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ where: { key: { remoteJid } } })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // Evolution API retorna um objeto aninhado. O array de msgs costuma vir em data.messages ou no próprio data.
+            let items = data.messages || data.data || data;
+            if (Array.isArray(items)) {
+              // Filtra apenas mensagens enviadas e recebidas com texto
+              items = items.filter(m => m.message?.conversation || m.message?.extendedTextMessage?.text);
+              // Ordena por data mais antiga primeiro
+              items.sort((a, b) => (a.messageTimestamp * 1000) - (b.messageTimestamp * 1000));
+
+              const formatted = items.map(m => {
+                return {
+                  role: m.key.fromMe ? 'assistant' : 'user',
+                  content: m.message.conversation || m.message.extendedTextMessage.text,
+                  timestamp: m.messageTimestamp * 1000
+                };
+              });
+
+              if (formatted.length > 0) {
+                renderMessages(formatted);
+                return;
+              }
+            }
           }
         }
-      } catch (e) { }
+      } catch (e) {
+        console.error("Erro ao buscar histórico da DbConecta/Evolution", e);
+      }
 
       // Fallback: show placeholder if no messages yet
       if (!msgs.querySelector('.chat-msg')) {
         msgs.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">
-          💬 Nenhuma mensagem ainda.<br>
-          <span style="font-size:10px">As mensagens aparecem aqui quando o lead respônder no WhatsApp.</span></div>`;
+          💬 Nenhuma mensagem carregada.<br>
+          <span style="font-size:10px">Verifique as credenciais da API na aba Integrações para ver o histórico.</span></div>`;
       }
     }
 
@@ -3298,9 +3329,9 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
       msgs.innerHTML = messages.map(m => {
         const isAI = m.role === 'assistant';
         const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-        return `<div class="chat-msg ${m.role}">
+        return `<div class="chat-msg ${isAI ? 'assistant' : 'user'}">
           ${m.content}
-          <div class="chat-msg-time">${isAI ? '🤖 IA • ' : '👤 Lead • '}${time}</div>
+          <div class="chat-msg-time">${isAI ? '👤 Você / IA • ' : '👤 Lead • '}${time}</div>
         </div>`;
       }).join('');
       if (wasAtBottom) msgs.scrollTop = msgs.scrollHeight;
