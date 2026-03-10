@@ -3020,7 +3020,7 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
 
     async function sendConfigToN8n() {
       const cfg = getAgentConfig();
-      if (!cfg.webhookUrl) { toast('Informe a URL do webhook n8n'); return; }
+      if (!cfg.evoN8nWebhook) { toast('Informe a URL do webhook n8n na aba Integrações!'); return; }
       saveAgentConfig();
 
       // Monta o config completo para enviar
@@ -3028,22 +3028,21 @@ Acompanhar follow-up em até 4 tentativas"></textarea>
         action: 'update_agent_config',
         agentName: cfg.agentName,
         systemPrompt: cfg.systemPrompt,
-        restrictions: cfg.restrictions.split('\n').filter(Boolean),
-        blockedWords: cfg.blockedWords.split(',').map(s => s.trim()).filter(Boolean),
-        skills: cfg.skills.split('\n').filter(Boolean),
-        flow: cfg.flow.split('\n').filter(Boolean),
+        restrictions: (cfg.restrictions || '').split('\n').filter(Boolean),
+        blockedWords: (cfg.blockedWords || '').split(',').map(s => s.trim()).filter(Boolean),
+        skills: (cfg.skills || '').split('\n').filter(Boolean),
+        flow: (cfg.flow || '').split('\n').filter(Boolean),
         calLink: cfg.calLink,
         updatedAt: new Date().toISOString(),
       };
 
       try {
         const headers = { 'Content-Type': 'application/json' };
-        if (cfg.webhookAuth) headers['Authorization'] = cfg.webhookAuth;
 
-        const res = await fetch(cfg.webhookUrl, {
-          method: cfg.webhookMethod || 'POST',
+        const res = await fetch(cfg.evoN8nWebhook, {
+          method: 'POST',
           headers,
-          body: cfg.webhookMethod !== 'GET' ? JSON.stringify(payload) : undefined,
+          body: JSON.stringify(payload),
         });
 
         if (res.ok) {
